@@ -1,0 +1,22 @@
+services:
+  backend:
+    build:
+      context: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      ADDR: ":8080"
+      # İsteğe bağlı: yukarı akış GİMDES tabanı (boşsa uygulama varsayılanını kullanır)
+      # GIMDES_BASE_URL: "https://..."
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NUXT_PUBLIC_API_BASE: http://localhost:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
