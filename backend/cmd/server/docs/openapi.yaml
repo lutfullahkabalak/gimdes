@@ -1,0 +1,327 @@
+openapi: 3.1.0
+info:
+  title: GİMDES proxy API
+  description: |
+    [gimdes.com](https://gimdes.com/) kamu verisini toplayan ince proxy.
+    Kapsam satırları `SertifikaKapsami` / `KapsamDisi` HTML alanlarından türetilir (`enrich` varsayılan açık).
+  version: 1.0.0
+
+servers:
+  - url: /
+    description: İstek yapılan host (Try it out ile aynı origin)
+
+tags:
+  - name: meta
+    description: Sağlık ve dokümantasyon
+  - name: gimdes
+    description: Kategori, arama ve sertifika listeleri
+
+paths:
+  /health:
+    get:
+      tags: [meta]
+      summary: Sağlık kontrolü
+      operationId: health
+      responses:
+        "200":
+          description: Sunucu ayakta
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+
+  /openapi.yaml:
+    get:
+      tags: [meta]
+      summary: OpenAPI spesifikasyonu (ham YAML)
+      operationId: getOpenAPISpec
+      responses:
+        "200":
+          description: OpenAPI 3.1 YAML
+          content:
+            application/yaml:
+              schema:
+                type: string
+
+  /categories:
+    get:
+      tags: [gimdes]
+      summary: Kategoriler (kısayol)
+      description: |
+        `/v1/categories` ile aynı yanıt.
+      operationId: listCategoriesAlias
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+      responses:
+        "200":
+          description: Kategori dizisi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        "502":
+          description: Upstream hata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/categories:
+    get:
+      tags: [gimdes]
+      summary: Kategoriler
+      description: |
+        Upstream `GET /api/kl` veya filtre ile `GET /api/kl/{filter}`.
+        Sonda `/` ile veya `/categories` ile de çalışır.
+      operationId: listCategories
+      parameters:
+        - $ref: "#/components/parameters/filterQuery"
+      responses:
+        "200":
+          description: Kategori dizisi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Category"
+        "502":
+          description: Upstream hata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/search:
+    get:
+      tags: [gimdes]
+      summary: Marka / firma / ürün araması
+      description: Upstream `GET /api/s/{q}`. En az 3 karakter önerilir.
+      operationId: search
+      parameters:
+        - name: q
+          in: query
+          required: true
+          schema:
+            type: string
+            minLength: 3
+          description: Arama metni
+        - name: enrich
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: ["0", "1", "true", "false", "no", "yes"]
+          description: |
+            `0`, `false`, `no` dışında varsayılan olarak `in_scope_lines` ve `out_of_scope_lines` doldurulur.
+      responses:
+        "200":
+          description: Eşleşen sertifikalar
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Certificate"
+        "400":
+          description: Geçersiz istek (ör. q çok kısa)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Upstream hata
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /v1/certificates:
+    get:
+      tags: [gimdes]
+      summary: Sertifika listesi
+      description: |
+        İki kaynak birbirini dışlar:
+        - `list_path`: upstream `POST /api/catLst/{list_path}` (ör. `Son-Guncellenenler--0`).
+        - `page_path`: HTML sayfası (ör. kategori `Href` — `/KategoriListe/baharat--spices__5`); gömülü `setCert({...})` verisi ayrıştırılır.
+      operationId: listCertificates
+      parameters:
+        - name: list_path
+          in: query
+          required: false
+          schema:
+            type: string
+            example: Son-Guncellenenler--0
+          description: Upstream liste anahtarı. Boşsa varsayılan `Son-Guncellenenler--0`.
+        - name: page_path
+          in: query
+          required: false
+          schema:
+            type: string
+            example: /KategoriListe/baharat--spices__5
+          description: gimdes.com üzerindeki yol; başında `/` olmalı.
+        - name: enrich
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Arama ile aynı (`enrich=false` ile ham alanlar).
+      responses:
+        "200":
+          description: Sertifika dizisi
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Certificate"
+        "400":
+          description: Hem `list_path` hem `page_path` verildi
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "502":
+          description: Upstream veya sayfa çekme hatası
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  parameters:
+    filterQuery:
+      name: filter
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Boşsa tüm kategori listesi; doluysa upstream filtre segmenti.
+
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+
+    Category:
+      type: object
+      properties:
+        KategoriAdi:
+          type: string
+        Id:
+          type: integer
+        SertifikaSayisi:
+          type: integer
+        Href:
+          type: string
+          description: Site üzerindeki yol (ör. `/KategoriListe/...`)
+        Icon:
+          type: string
+
+    Certificate:
+      type: object
+      description: Upstream alan adları korunur; `in_scope_lines` / `out_of_scope_lines` bu API tarafından eklenir.
+      properties:
+        KategoriAdi:
+          type: string
+        FirmaId:
+          type: integer
+        FirmaAdi:
+          type: string
+        FirmaTelefon:
+          type: string
+        FirmaWebSayfasi:
+          type: string
+          nullable: true
+        FirmaIletisimEmail:
+          type: string
+        FirmaIl:
+          type: string
+        FirmaUlke:
+          type: string
+        SertifikaId:
+          type: integer
+        KategoriId:
+          type: integer
+        MarkaAdi:
+          type: string
+        MarkaLogosu:
+          type: string
+          nullable: true
+        SertifikaNo:
+          type: string
+        FirmaAdresi:
+          type: string
+        IlkSertifikaAlimTarihi:
+          type: string
+          format: date-time
+        SertifikaBitisTarihi:
+          type: string
+          format: date-time
+        YildizSayisi:
+          type: integer
+        GuncellemeTarihi:
+          type: string
+          format: date-time
+        SertifikaKapsami:
+          type: string
+          nullable: true
+          description: HTML — sertifika kapsamı metni
+        KapsamDisi:
+          type: string
+          nullable: true
+          description: HTML — kapsam dışı ürün/açıklama
+        AskiyaAlmaAciklama:
+          type: string
+          nullable: true
+        Durum:
+          type: string
+        IptalAciklamasi:
+          type: string
+          nullable: true
+        HanefiOk:
+          type: boolean
+        HanbeliOk:
+          type: boolean
+        SafiOk:
+          type: boolean
+        MalikiOk:
+          type: boolean
+        SertifikaResimleri:
+          type: string
+          nullable: true
+          description: JSON dizesi (dosya listesi)
+        KapsamOnizleme:
+          type: string
+        Rozet:
+          type: string
+        BarkodluUrunSayisi:
+          type: integer
+          description: Sistemde kayıtlı barkodlu ürün sayısı (upstream)
+        AramaIndex:
+          type: string
+          nullable: true
+        IsletmeKayitNo:
+          type: string
+          nullable: true
+        in_scope_lines:
+          type: array
+          items:
+            type: string
+          description: |
+            `SertifikaKapsami` HTML'inden çıkarılmış satırlar
+        out_of_scope_lines:
+          type: array
+          items:
+            type: string
+          description: |
+            `KapsamDisi` HTML'inden çıkarılmış satırlar
