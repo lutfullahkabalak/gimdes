@@ -1,0 +1,33 @@
+# Self-hosted GHCR imajları + Cloudflare Tunnel (veya başka bir ters vekil).
+#
+# Tunnel’da örnek eşleme (Cloudflare Zero Trust → Public Hostname):
+#   gimdesapi.<alan>  → http://localhost:${GIMDES_BACKEND_PUBLISH_PORT:-1301}
+#   gimdes.<alan>     → http://localhost:${GIMDES_FRONTEND_PUBLISH_PORT:-1300}
+#
+# Tarayıcının API’ye vuracağı tam HTTPS tabanı (Tunnel’ın dış URL’si ile aynı olmalı):
+#   GIMDES_PUBLIC_API_BASE  (varsayılan: https://gimdesapi.abapnews.tr)
+#
+# Portainer / .env ile özelleştir: GIMDES_GHCR_PREFIX, GIMDES_IMAGE_TAG,
+# GIMDES_BACKEND_PUBLISH_PORT, GIMDES_FRONTEND_PUBLISH_PORT, GIMDES_PUBLIC_API_BASE.
+
+services:
+  backend:
+    image: ${GIMDES_GHCR_PREFIX:-ghcr.io/lutfullahkabalak/gimdes}/backend:${GIMDES_IMAGE_TAG:-main}
+    pull_policy: always
+    ports:
+      - "${GIMDES_BACKEND_PUBLISH_PORT:-1301}:8080"
+    environment:
+      ADDR: ":8080"
+      # GIMDES_BASE_URL: "https://..."  # yukarı akış GİMDES (isteğe bağlı)
+    restart: unless-stopped
+
+  frontend:
+    image: ${GIMDES_GHCR_PREFIX:-ghcr.io/lutfullahkabalak/gimdes}/frontend:${GIMDES_IMAGE_TAG:-main}
+    pull_policy: always
+    ports:
+      - "${GIMDES_FRONTEND_PUBLISH_PORT:-1300}:3000"
+    environment:
+      NUXT_PUBLIC_API_BASE: ${GIMDES_PUBLIC_API_BASE}
+    depends_on:
+      - backend
+    restart: unless-stopped

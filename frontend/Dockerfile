@@ -1,5 +1,6 @@
 # syntax=docker/dockerfile:1
-FROM node:22-alpine AS build
+# Nuxt çıktısı mimariden bağımsız; derlemeyi BUILDPLATFORM’da koşturup runtime’ı hedef mimariye bırak
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
