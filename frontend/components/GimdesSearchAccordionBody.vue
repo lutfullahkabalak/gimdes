@@ -31,7 +31,7 @@ const tableColumns: TableColumn<Row>[] = [
 </script>
 
 <template>
-  <div class="border-default space-y-3 border-t p-4">
+  <div class="border-default/80 space-y-3 border-t bg-elevated/20 p-4 sm:p-5">
     <p class="text-muted text-xs font-semibold uppercase tracking-wide">
       Eşleşen ürün / kapsam
     </p>

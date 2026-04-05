@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
 import { iconForCategory } from '~/utils/categoryIcon'
-import { gimdesBrandLogoUrl, logoUrl } from '~/utils/logoUrl'
 
 const router = useRouter()
 const { getCategories, getCertificatesByCategoryHref, getCertificateList } = useGimdesApi()
@@ -127,51 +126,7 @@ onMounted(async () => {
 
 <template>
   <div class="flex flex-col gap-10">
-    <UCard
-      class="border-primary/20 from-primary/5 ring-primary/10 overflow-hidden bg-gradient-to-br to-default ring-1"
-      variant="subtle"
-      :ui="{ body: 'p-5 sm:p-6 flex flex-col gap-5 sm:gap-6' }"
-    >
-      <div
-        class="flex flex-col items-center gap-3 sm:flex-row sm:items-center sm:justify-start sm:gap-4"
-      >
-        <img
-          :src="gimdesBrandLogoUrl"
-          alt=""
-          class="h-14 w-auto max-w-[min(100%,200px)] shrink-0 object-contain sm:h-16 sm:max-w-[240px]"
-          width="240"
-          height="64"
-          loading="eager"
-          fetchpriority="high"
-        >
-        <span class="text-highlighted text-center text-2xl font-bold tracking-tight sm:text-left sm:text-3xl md:text-4xl">
-          GİMDES
-        </span>
-      </div>
-
-      <div class="border-default flex flex-col gap-3 border-t pt-5 sm:flex-row sm:items-end sm:pt-6">
-        <UInput
-          v-model="homeSearchDraft"
-          type="search"
-          icon="i-lucide-search"
-          placeholder="Örn. piliç, süt, baharat…"
-          autocomplete="off"
-          size="lg"
-          variant="outline"
-          class="w-full flex-1"
-          @keydown.enter.prevent="goToSearchPage"
-        />
-        <UButton
-          label="Ara"
-          color="primary"
-          variant="solid"
-          size="lg"
-          class="shrink-0"
-          :disabled="homeSearchDraft.trim().length < 3"
-          @click="goToSearchPage"
-        />
-      </div>
-    </UCard>
+    <GimdesHomeSearchHero v-model="homeSearchDraft" @submit="goToSearchPage" />
 
     <section>
       <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -234,44 +189,19 @@ onMounted(async () => {
         v-if="listLoading"
         class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
       >
-        <USkeleton v-for="n in 10" :key="n" class="aspect-square rounded-xl" />
+        <USkeleton v-for="n in 10" :key="n" class="aspect-square rounded-2xl" />
       </div>
 
       <div
         v-else
         class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
       >
-        <UCard
+        <GimdesBrandTile
           v-for="cert in listCerts"
           :key="cert.SertifikaId"
-          class="aspect-square cursor-pointer transition hover:ring-2 hover:ring-primary"
-          :ui="{
-            root: 'flex h-full flex-col overflow-hidden',
-            body: 'flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center',
-          }"
-          variant="subtle"
-          @click="goBrand(cert)"
-        >
-          <img
-            v-if="logoUrl(cert.MarkaLogosu)"
-            :src="logoUrl(cert.MarkaLogosu)!"
-            :alt="cert.MarkaAdi"
-            class="size-40 max-h-[52%] object-contain"
-          >
-          <UIcon
-            v-else
-            name="i-lucide-award"
-            class="text-muted size-20 shrink-0"
-          />
-          <div class="w-full min-w-0">
-            <p class="line-clamp-2 text-sm font-semibold leading-tight">
-              {{ cert.MarkaAdi }}
-            </p>
-            <p class="text-muted mt-1 line-clamp-2 text-xs leading-tight">
-              {{ cert.FirmaAdi }}
-            </p>
-          </div>
-        </UCard>
+          :cert="cert"
+          @select="goBrand"
+        />
       </div>
 
       <p

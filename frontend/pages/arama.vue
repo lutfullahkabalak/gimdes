@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { CollapsibleContent, CollapsibleRoot } from 'reka-ui'
 import type { Certificate } from '~/types/gimdes'
-import { logoUrl } from '~/utils/logoUrl'
 import { matchesProductAccordion } from '~/utils/matchScope'
 
 const DEBOUNCE_MS = 400
@@ -228,17 +226,20 @@ function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral'
         <UInput
           v-model="searchQ"
           type="search"
-          icon="i-lucide-search"
           placeholder="Marka, firma veya ürün yazın…"
           autocomplete="off"
           size="xl"
           variant="outline"
           :ui="{
-            base: 'h-12 rounded-xl pl-11 pr-12 text-base shadow-sm sm:h-14 sm:text-lg',
-            leading: 'pointer-events-none text-muted',
+            base: 'h-12 rounded-[1.35rem] pl-[3.55rem] pr-12 text-base shadow-sm sm:h-14 sm:rounded-[1.65rem] sm:pl-[3.85rem] sm:text-lg',
+            leading: 'pointer-events-none ps-3.5',
           }"
           class="w-full"
-        />
+        >
+          <template #leading>
+            <UIcon name="i-lucide-search" class="size-6 shrink-0 text-primary sm:size-7" aria-hidden="true" />
+          </template>
+        </UInput>
         <div class="absolute end-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
           <UIcon
             v-if="searchLoading"
@@ -298,14 +299,14 @@ function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral'
       <div
         v-for="n in 6"
         :key="n"
-        class="border-default flex items-center gap-3 rounded-xl border p-4"
+        class="gimdes-surface flex items-center gap-3 p-4"
       >
-        <USkeleton class="size-11 shrink-0 rounded-lg" />
+        <USkeleton class="size-12 shrink-0 rounded-xl" />
         <div class="flex-1 space-y-2">
-          <USkeleton class="h-4 w-2/5 rounded" />
-          <USkeleton class="h-3 w-3/5 rounded" />
+          <USkeleton class="h-4 w-2/5 rounded-lg" />
+          <USkeleton class="h-3 w-3/5 rounded-lg" />
         </div>
-        <USkeleton class="h-9 w-16 shrink-0 rounded-lg" />
+        <USkeleton class="h-9 w-16 shrink-0 rounded-xl" />
       </div>
     </div>
 
@@ -317,122 +318,24 @@ function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral'
       </p>
 
       <template v-for="cert in searchResults" :key="cert.SertifikaId">
-        <!-- Accordion card (product/scope match) -->
-        <div
+        <GimdesSearchResultAccordion
           v-if="matchesProductAccordion(searchQ, cert)"
-          class="border-default overflow-hidden rounded-xl border transition-shadow hover:shadow-md"
+          :cert="cert"
+          :open="accordionOpen[cert.SertifikaId] ?? false"
+          :badge-color="statusColor(cert.Durum)"
+          @toggle="toggleAccordion(cert.SertifikaId)"
+          @update:open="(v: boolean) => setAccordionOpen(cert.SertifikaId, v)"
+          @detail="goBrand(cert)"
         >
-          <CollapsibleRoot
-            :open="accordionOpen[cert.SertifikaId] ?? false"
-            :unmount-on-hide="false"
-            class="flex min-w-0 flex-col"
-            @update:open="(v: boolean) => setAccordionOpen(cert.SertifikaId, v)"
-          >
-            <div class="relative flex min-h-[3.5rem] w-full items-center gap-3 px-4 py-3">
-              <button
-                type="button"
-                class="absolute inset-0 z-0 cursor-pointer text-left transition outline-none hover:bg-elevated/40 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary"
-                :aria-expanded="accordionOpen[cert.SertifikaId] ?? false"
-                aria-label="Eşleşen ürünleri göster/gizle"
-                @click="toggleAccordion(cert.SertifikaId)"
-              />
+          <GimdesSearchAccordionBody :q="searchQ" :cert="cert" />
+        </GimdesSearchResultAccordion>
 
-              <div class="pointer-events-none relative z-10 flex min-w-0 flex-1 items-center gap-3">
-                <img
-                  v-if="logoUrl(cert.MarkaLogosu)"
-                  :src="logoUrl(cert.MarkaLogosu)!"
-                  alt=""
-                  class="size-11 shrink-0 rounded-lg border border-default bg-white object-contain p-0.5"
-                >
-                <UIcon
-                  v-else
-                  name="i-lucide-package"
-                  class="text-muted size-11 shrink-0 rounded-lg border border-default p-2"
-                />
-
-                <div class="min-w-0 flex-1">
-                  <div class="flex items-center gap-2">
-                    <span class="truncate font-semibold">{{ cert.MarkaAdi }}</span>
-                    <UBadge
-                      :color="statusColor(cert.Durum)"
-                      variant="subtle"
-                      size="xs"
-                      class="shrink-0"
-                    >
-                      {{ cert.Durum }}
-                    </UBadge>
-                  </div>
-                  <div class="text-muted truncate text-sm">
-                    {{ cert.FirmaAdi }} · {{ cert.KategoriAdi }}
-                  </div>
-                </div>
-
-                <UIcon
-                  name="i-lucide-chevron-down"
-                  class="text-muted size-5 shrink-0 transition-transform duration-200"
-                  :class="{ 'rotate-180': accordionOpen[cert.SertifikaId] }"
-                />
-              </div>
-
-              <UButton
-                label="Detay"
-                size="md"
-                color="primary"
-                variant="soft"
-                trailing-icon="i-lucide-arrow-right"
-                class="relative z-20 shrink-0"
-                @click.stop="goBrand(cert)"
-              />
-            </div>
-
-            <CollapsibleContent
-              class="data-[state=open]:animate-[collapsible-down_200ms_ease-out] data-[state=closed]:animate-[collapsible-up_200ms_ease-out] overflow-hidden"
-            >
-              <GimdesSearchAccordionBody :q="searchQ" :cert="cert" />
-            </CollapsibleContent>
-          </CollapsibleRoot>
-        </div>
-
-        <!-- Simple card (no product match) -->
-        <div
+        <GimdesSearchResultRowSimple
           v-else
-          class="group border-default flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition-all hover:border-primary/40 hover:shadow-md"
-          @click="goBrand(cert)"
-        >
-          <img
-            v-if="logoUrl(cert.MarkaLogosu)"
-            :src="logoUrl(cert.MarkaLogosu)!"
-            alt=""
-            class="size-11 shrink-0 rounded-lg border border-default bg-white object-contain p-0.5"
-          >
-          <UIcon
-            v-else
-            name="i-lucide-building-2"
-            class="text-muted size-11 shrink-0 rounded-lg border border-default p-2"
-          />
-
-          <div class="min-w-0 flex-1">
-            <div class="flex items-center gap-2">
-              <span class="font-semibold transition-colors group-hover:text-primary">{{ cert.MarkaAdi }}</span>
-              <UBadge
-                :color="statusColor(cert.Durum)"
-                variant="subtle"
-                size="xs"
-                class="shrink-0"
-              >
-                {{ cert.Durum }}
-              </UBadge>
-            </div>
-            <div class="text-muted text-sm">
-              {{ cert.FirmaAdi }} · {{ cert.KategoriAdi }}
-            </div>
-          </div>
-
-          <UIcon
-            name="i-lucide-arrow-right"
-            class="text-muted size-5 shrink-0 opacity-0 transition group-hover:opacity-100"
-          />
-        </div>
+          :cert="cert"
+          :badge-color="statusColor(cert.Durum)"
+          @select="goBrand"
+        />
       </template>
     </div>
   </div>

@@ -1,6 +1,12 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
+@layer components {
+  .gimdes-surface {
+    @apply rounded-2xl border border-default/80 bg-default/90 shadow-sm ring-1 ring-black/5 backdrop-blur-[2px] dark:bg-default/85 dark:ring-white/10;
+  }
+}
+
 html {
   color-scheme: light;
 }

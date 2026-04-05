@@ -103,50 +103,34 @@ onMounted(() => {
     </UAlert>
 
     <template v-else-if="cert">
-      <UCard
-        :ui="{
-          header:
-            'border-default border-b bg-primary/15 px-4 py-3.5 sm:px-6',
-        }"
-      >
-        <template #header>
-          <h2 class="text-highlighted font-semibold">
-            Marka
-          </h2>
-        </template>
+      <GimdesDetailSection title="Marka" accent="primary">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <img
-            v-if="logo"
-            :src="logo"
-            :alt="cert.MarkaAdi"
-            class="border-default size-24 shrink-0 rounded-xl border object-contain"
+          <div
+            class="border-default flex size-24 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br from-elevated to-default p-2 shadow-inner ring-1 ring-inset ring-default/50"
           >
-          <UIcon v-else name="i-lucide-award" class="text-muted size-24 shrink-0" />
+            <img
+              v-if="logo"
+              :src="logo"
+              :alt="cert.MarkaAdi"
+              class="max-h-full max-w-full object-contain"
+            >
+            <UIcon v-else name="i-lucide-award" class="text-muted size-12 shrink-0" />
+          </div>
           <div>
-            <h1 class="text-highlighted text-2xl font-bold">
+            <h1 class="text-highlighted text-2xl font-bold tracking-tight">
               {{ cert.MarkaAdi }}
             </h1>
-            <p class="text-muted mt-1">
+            <p class="text-muted mt-1 text-sm">
               {{ cert.KategoriAdi }} · {{ cert.Durum }}
             </p>
-            <p v-if="cert.SertifikaNo" class="mt-2 text-sm">
-              Sertifika no: <span class="font-medium">{{ cert.SertifikaNo }}</span>
+            <p v-if="cert.SertifikaNo" class="mt-3 text-sm">
+              Sertifika no: <span class="text-highlighted font-medium">{{ cert.SertifikaNo }}</span>
             </p>
           </div>
         </div>
-      </UCard>
+      </GimdesDetailSection>
 
-      <UCard
-        :ui="{
-          header:
-            'border-default border-b bg-sky-500/15 px-4 py-3.5 sm:px-6 text-sky-950 dark:text-sky-100',
-        }"
-      >
-        <template #header>
-          <h2 class="font-semibold">
-            Firma
-          </h2>
-        </template>
+      <GimdesDetailSection title="Firma" accent="sky">
         <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[8rem_1fr] sm:gap-x-4">
           <dt class="text-muted">
             Ünvan
@@ -186,19 +170,9 @@ onMounted(() => {
           </dt>
           <dd>{{ cert.IsletmeKayitNo || '—' }}</dd>
         </dl>
-      </UCard>
+      </GimdesDetailSection>
 
-      <UCard
-        :ui="{
-          header:
-            'border-default border-b bg-violet-500/15 px-4 py-3.5 sm:px-6 text-violet-950 dark:text-violet-100',
-        }"
-      >
-        <template #header>
-          <h2 class="font-semibold">
-            Sertifika
-          </h2>
-        </template>
+      <GimdesDetailSection title="Sertifika" accent="violet">
         <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[8rem_1fr] sm:gap-x-4">
           <dt class="text-muted">
             İlk alım
@@ -217,20 +191,13 @@ onMounted(() => {
           </dt>
           <dd>{{ cert.BarkodluUrunSayisi }}</dd>
         </dl>
-      </UCard>
+      </GimdesDetailSection>
 
-      <UCard
+      <GimdesDetailSection
         v-if="cert.in_scope_lines?.length"
-        :ui="{
-          header:
-            'border-default border-b bg-emerald-500/15 px-4 py-3.5 sm:px-6 text-emerald-950 dark:text-emerald-100',
-        }"
+        title="Kapsam"
+        accent="emerald"
       >
-        <template #header>
-          <h2 class="font-semibold">
-            Kapsam
-          </h2>
-        </template>
         <div class="space-y-3">
           <UInput
             v-model="inScopeFilter"
@@ -255,20 +222,13 @@ onMounted(() => {
             />
           </div>
         </div>
-      </UCard>
+      </GimdesDetailSection>
 
-      <UCard
+      <GimdesDetailSection
         v-if="cert.out_of_scope_lines?.length"
-        :ui="{
-          header:
-            'border-default border-b bg-amber-500/15 px-4 py-3.5 sm:px-6 text-amber-950 dark:text-amber-100',
-        }"
+        title="Kapsam dışı"
+        accent="red"
       >
-        <template #header>
-          <h2 class="font-semibold">
-            Kapsam dışı
-          </h2>
-        </template>
         <div class="space-y-3">
           <UInput
             v-model="outScopeFilter"
@@ -293,7 +253,7 @@ onMounted(() => {
             />
           </div>
         </div>
-      </UCard>
+      </GimdesDetailSection>
     </template>
   </div>
 </template>
