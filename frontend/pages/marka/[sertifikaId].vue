@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Certificate } from '~/types/gimdes'
+import { certDetailPageShellClass, getCertAlertKind } from '~/utils/certStatus'
 import { logoUrl } from '~/utils/logoUrl'
 import { stripHtml, tableGlobalFilterTr } from '~/utils/matchScope'
 
@@ -64,6 +65,28 @@ const scopeLineColumns: TableColumn<ScopeLineRow>[] = [
   },
 ]
 
+const alertKind = computed(() => {
+  if (!cert.value)
+    return null
+  return getCertAlertKind(cert.value)
+})
+
+const pageShellClass = computed(() => {
+  if (!cert.value || missing.value)
+    return ''
+  return certDetailPageShellClass(alertKind.value)
+})
+
+const scopeInAccent = computed(() => {
+  const k = alertKind.value
+  return k === 'cancelled' || k === 'expired' ? 'red' : 'emerald'
+})
+
+const markaSectionAccent = computed(() => {
+  const k = alertKind.value
+  return k === 'cancelled' || k === 'expired' ? 'red' : 'primary'
+})
+
 onMounted(() => {
   const id = sertifikaId.value
   const raw = id ? sessionStorage.getItem(`gimdes_cert_${id}`) : null
@@ -81,7 +104,24 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl space-y-6">
+  <div class="mx-auto max-w-3xl space-y-6" :class="pageShellClass">
+    <template v-if="cert && !missing">
+      <UAlert
+        v-if="alertKind === 'cancelled'"
+        color="error"
+        variant="subtle"
+        title="Bu sertifika iptal edilmiştir."
+        :description="cert.IptalAciklamasi?.trim() || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'"
+      />
+      <UAlert
+        v-else-if="alertKind === 'expired'"
+        color="warning"
+        variant="subtle"
+        title="Bu sertifikanın süresi dolmuştur."
+        description="Bitiş tarihi geçmiş; güncel durum için firmayı doğrulamanız önerilir."
+      />
+    </template>
+
     <UBreadcrumb
       :items="[
         { label: homeCrumbLabel, to: homeTo },
@@ -103,7 +143,7 @@ onMounted(() => {
     </UAlert>
 
     <template v-else-if="cert">
-      <GimdesDetailSection title="Marka" accent="primary">
+      <GimdesDetailSection title="Marka" :accent="markaSectionAccent">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
           <div
             class="border-default flex size-24 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br from-elevated to-default p-2 shadow-inner ring-1 ring-inset ring-default/50"
@@ -190,13 +230,21 @@ onMounted(() => {
             Barkodlu ürün
           </dt>
           <dd>{{ cert.BarkodluUrunSayisi }}</dd>
+          <template v-if="cert.IptalAciklamasi?.trim()">
+            <dt class="text-muted">
+              İptal açıklaması
+            </dt>
+            <dd class="whitespace-pre-wrap text-red-600 dark:text-red-400">
+              {{ cert.IptalAciklamasi.trim() }}
+            </dd>
+          </template>
         </dl>
       </GimdesDetailSection>
 
       <GimdesDetailSection
         v-if="cert.in_scope_lines?.length"
         title="Kapsam"
-        accent="emerald"
+        :accent="scopeInAccent"
       >
         <div class="space-y-3">
           <UInput

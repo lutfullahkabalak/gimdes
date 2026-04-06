@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CollapsibleContent, CollapsibleRoot } from 'reka-ui'
 import type { Certificate } from '~/types/gimdes'
+import { certCardSurfaceClass } from '~/utils/certStatus'
 import { logoUrl } from '~/utils/logoUrl'
 
 const props = defineProps<{
@@ -21,6 +22,7 @@ const src = computed(() => logoUrl(props.cert.MarkaLogosu))
 <template>
   <div
     class="gimdes-surface overflow-hidden bg-gradient-to-br from-default to-elevated/25 transition-shadow duration-200 hover:shadow-md"
+    :class="certCardSurfaceClass(cert)"
   >
     <CollapsibleRoot
       :open="open"

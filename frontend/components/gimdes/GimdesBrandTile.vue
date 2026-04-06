@@ -1,5 +1,12 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import {
+  certHomeTileCornerLabel,
+  certHomeTileInnerClass,
+  certHomeTileLogoPanelClass,
+  certHomeTileShellClass,
+  getCertAlertKind,
+} from '~/utils/certStatus'
 import { logoUrl } from '~/utils/logoUrl'
 
 const props = defineProps<{
@@ -12,6 +19,21 @@ const emit = defineEmits<{
 
 const src = computed(() => logoUrl(props.cert.MarkaLogosu))
 
+const cornerLabel = computed(() => certHomeTileCornerLabel(props.cert))
+
+const shellClass = computed(() => certHomeTileShellClass(props.cert))
+const innerClass = computed(() => certHomeTileInnerClass(props.cert))
+const logoPanelClass = computed(() => certHomeTileLogoPanelClass(props.cert))
+
+const cornerBadgeClass = computed(() => {
+  const kind = getCertAlertKind(props.cert)
+  if (kind === 'cancelled')
+    return 'bg-red-600/90 text-white dark:bg-red-700/95'
+  if (kind === 'expired')
+    return 'bg-amber-600/90 text-white dark:bg-amber-700/95'
+  return ''
+})
+
 function onSelect() {
   emit('select', props.cert)
 }
@@ -20,14 +42,24 @@ function onSelect() {
 <template>
   <button
     type="button"
-    class="gimdes-surface group flex aspect-square h-full w-full min-w-0 flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg hover:ring-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
+    class="gimdes-surface group relative flex aspect-square h-full w-full min-w-0 flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg hover:ring-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
+    :class="shellClass"
     @click="onSelect"
   >
+    <span
+      v-if="cornerLabel"
+      class="pointer-events-none absolute bottom-2 right-2 z-10 max-w-[calc(100%-1rem)] rounded-md px-2 py-1 text-center text-[0.65rem] font-bold leading-tight shadow-sm sm:text-xs"
+      :class="cornerBadgeClass"
+    >
+      {{ cornerLabel }}
+    </span>
     <div
-      class="flex flex-1 flex-col items-center justify-center gap-2 bg-gradient-to-b from-elevated/90 to-default p-3 text-center"
+      class="flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center"
+      :class="innerClass"
     >
       <div
-        class="flex h-[52%] max-h-[8.5rem] w-full items-center justify-center rounded-xl bg-default/80 px-2 shadow-inner ring-1 ring-inset ring-default/60"
+        class="flex h-[52%] max-h-[8.5rem] w-full items-center justify-center rounded-xl px-2 shadow-inner ring-1 ring-inset"
+        :class="logoPanelClass || 'bg-default/80 ring-default/60'"
       >
         <img
           v-if="src"

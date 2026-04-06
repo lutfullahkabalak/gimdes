@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import { certCardSurfaceClass } from '~/utils/certStatus'
 import { logoUrl } from '~/utils/logoUrl'
 
 const props = defineProps<{
@@ -22,6 +23,7 @@ function onSelect() {
   <button
     type="button"
     class="gimdes-surface group flex w-full cursor-pointer items-center gap-3 bg-gradient-to-br from-default to-elevated/30 p-4 text-left transition duration-200 hover:-translate-y-px hover:border-primary/30 hover:shadow-md hover:ring-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
+    :class="certCardSurfaceClass(cert)"
     @click="onSelect"
   >
     <img

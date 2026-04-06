@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import { certBadgeColor } from '~/utils/certStatus'
 import { matchesProductAccordion } from '~/utils/matchScope'
 
 const DEBOUNCE_MS = 400
@@ -181,12 +182,6 @@ const showHint = computed(() =>
   && !searchLoading.value,
 )
 
-function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral' {
-  if (durum === 'Aktif') return 'success'
-  if (durum.includes('Askı') || durum.includes('askı')) return 'warning'
-  if (durum.includes('İptal') || durum.includes('iptal')) return 'error'
-  return 'neutral'
-}
 </script>
 
 <template>
@@ -322,7 +317,7 @@ function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral'
           v-if="matchesProductAccordion(searchQ, cert)"
           :cert="cert"
           :open="accordionOpen[cert.SertifikaId] ?? false"
-          :badge-color="statusColor(cert.Durum)"
+          :badge-color="certBadgeColor(cert)"
           @toggle="toggleAccordion(cert.SertifikaId)"
           @update:open="(v: boolean) => setAccordionOpen(cert.SertifikaId, v)"
           @detail="goBrand(cert)"
@@ -333,7 +328,7 @@ function statusColor(durum: string): 'success' | 'warning' | 'error' | 'neutral'
         <GimdesSearchResultRowSimple
           v-else
           :cert="cert"
-          :badge-color="statusColor(cert.Durum)"
+          :badge-color="certBadgeColor(cert)"
           @select="goBrand"
         />
       </template>

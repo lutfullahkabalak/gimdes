@@ -2,23 +2,31 @@
 import type { Certificate } from '~/types/gimdes'
 import { iconForCategory } from '~/utils/categoryIcon'
 
+const HOME_SCROLL_KEY = 'gimdes_home_scroll_y'
+
 const router = useRouter()
 const { getCategories, getCertificatesByCategoryHref, getCertificateList } = useGimdesApi()
 
-const categories = ref<Awaited<ReturnType<typeof getCategories>>>([])
-const categoriesError = ref('')
-const categoriesLoading = ref(true)
+type CategoriesPayload = Awaited<ReturnType<typeof getCategories>>
 
-const selectedHref = ref<string | null>(null)
-const listCerts = ref<Certificate[]>([])
-const listLoading = ref(false)
-const listError = ref('')
+/** Navigasyonlar arasında kalır (Nuxt Suspense/KeepAlive route değişiminde önbelleği sıfırlar). */
+const categories = useState<CategoriesPayload>('gimdes-home-categories', () => [])
+const categoriesError = useState('gimdes-home-categoriesError', () => '')
+const categoriesLoading = useState('gimdes-home-categoriesLoading', () => true)
 
-const categoryId = ref('__all__')
-const categoryPickerReady = ref(false)
+const selectedHref = useState<string | null>('gimdes-home-selectedHref', () => null)
+const listCerts = useState<Certificate[]>('gimdes-home-listCerts', () => [])
+const listLoading = useState('gimdes-home-listLoading', () => false)
+const listError = useState('gimdes-home-listError', () => '')
+
+const categoryId = useState('gimdes-home-categoryId', () => '__all__')
+const categoryPickerReady = useState('gimdes-home-pickerReady', () => false)
 
 /** Ana sayfadan arama sayfasına geçiş (API çağrısı burada yapılmaz) */
-const homeSearchDraft = ref('')
+const homeSearchDraft = useState('gimdes-home-searchDraft', () => '')
+
+/** İlk yüklemede kategori + liste çekildi; marka sayfasına gidip dönünce tekrar fetch yok. */
+const homeDataBootstrapped = useState('gimdes-home-bootstrapped', () => false)
 
 const categoryItems = computed(() => {
   const rows: { label: string; id: string; icon: string }[] = [
@@ -116,11 +124,59 @@ watch(categoryId, async (id) => {
     await selectCategory(id)
 })
 
+onBeforeRouteLeave((to) => {
+  if (typeof to.path === 'string' && to.path.startsWith('/marka/')) {
+    try {
+      sessionStorage.setItem(HOME_SCROLL_KEY, String(window.scrollY))
+    }
+    catch {
+      /* quota */
+    }
+  }
+})
+
+function restoreHomeScroll() {
+  let raw: string | null = null
+  try {
+    raw = sessionStorage.getItem(HOME_SCROLL_KEY)
+  }
+  catch {
+    return
+  }
+  if (raw == null)
+    return
+  try {
+    sessionStorage.removeItem(HOME_SCROLL_KEY)
+  }
+  catch {
+    /* quota */
+  }
+  const y = Number.parseInt(raw, 10)
+  if (!Number.isFinite(y))
+    return
+  nextTick(() => {
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: y, left: 0, behavior: 'auto' })
+    })
+  })
+}
+
 onMounted(async () => {
-  await loadCategories()
-  await loadDefaultBrands()
-  await nextTick()
-  categoryPickerReady.value = true
+  if (!homeDataBootstrapped.value) {
+    await loadCategories()
+    if (categoryId.value === '__all__')
+      await loadDefaultBrands()
+    else
+      await selectCategory(categoryId.value)
+    await nextTick()
+    categoryPickerReady.value = true
+    homeDataBootstrapped.value = true
+  }
+  else {
+    await nextTick()
+    categoryPickerReady.value = true
+  }
+  restoreHomeScroll()
 })
 </script>
 
