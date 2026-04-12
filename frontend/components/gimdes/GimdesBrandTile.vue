@@ -54,11 +54,11 @@ function onSelect() {
       {{ cornerLabel }}
     </span>
     <div
-      class="flex flex-1 flex-col items-center justify-center gap-2 p-3 text-center"
+      class="flex flex-1 flex-col items-center justify-start gap-2 pt-4 px-3 pb-3 text-center"
       :class="innerClass"
     >
       <div
-        class="flex h-[52%] max-h-[8.5rem] w-full items-center justify-center rounded-xl px-2 shadow-inner ring-1 ring-inset"
+        class="flex h-[52%] max-h-[8.5rem] w-full shrink-0 items-center justify-center rounded-xl px-2 shadow-inner ring-1 ring-inset"
         :class="logoPanelClass || 'bg-default/80 ring-default/60'"
       >
         <img

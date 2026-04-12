@@ -1,3 +1,9 @@
+export interface CertificateImage {
+  filename: string
+  original_name: string
+  url: string
+}
+
 export interface Category {
   KategoriAdi: string
   Id: number
@@ -42,4 +48,5 @@ export interface Certificate {
   IsletmeKayitNo: string | null
   in_scope_lines?: string[]
   out_of_scope_lines?: string[]
+  certificate_images?: CertificateImage[]
 }

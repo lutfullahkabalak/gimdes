@@ -40,4 +40,5 @@ func LinesFromScopeHTML(s *string) []string {
 func EnrichCertificate(c *Certificate) {
 	c.InScopeLines = LinesFromScopeHTML(c.SertifikaKapsami)
 	c.OutOfScopeLines = LinesFromScopeHTML(c.KapsamDisi)
+	c.CertificateImages = CertificateImagesFromResimleri(c.SertifikaResimleri)
 }

@@ -212,6 +212,21 @@ components:
         error:
           type: string
 
+    CertificateImage:
+      type: object
+      required: [filename, url]
+      properties:
+        filename:
+          type: string
+          description: Upstream `Filename` (gimnet üzerindeki göreli yol)
+        original_name:
+          type: string
+          description: Upstream `OriginalName` (yüklenen dosya adı)
+        url:
+          type: string
+          format: uri
+          description: Tam görsel adresi (`https://gimnet.gimdes.com/Upload/...`)
+
     Category:
       type: object
       properties:
@@ -229,7 +244,7 @@ components:
 
     Certificate:
       type: object
-      description: Upstream alan adları korunur; `in_scope_lines` / `out_of_scope_lines` bu API tarafından eklenir.
+      description: Upstream alan adları korunur; `in_scope_lines` / `out_of_scope_lines` / `certificate_images` bu API tarafından eklenir (`enrich` açıkken).
       properties:
         KategoriAdi:
           type: string
@@ -325,3 +340,10 @@ components:
             type: string
           description: |
             `KapsamDisi` HTML'inden çıkarılmış satırlar
+        certificate_images:
+          type: array
+          description: |
+            `SertifikaResimleri` JSON dizgesinden ayrıştırılmış görsel satırları (tam `url` ile).
+            `enrich` kapalıyken gönderilmez.
+          items:
+            $ref: '#/components/schemas/CertificateImage'

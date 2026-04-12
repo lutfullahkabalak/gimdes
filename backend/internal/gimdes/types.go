@@ -46,6 +46,7 @@ type Certificate struct {
 	IsletmeKayitNo            *string `json:"IsletmeKayitNo"`
 
 	// Enriched (not from upstream JSON)
-	InScopeLines    []string `json:"in_scope_lines,omitempty"`
-	OutOfScopeLines []string `json:"out_of_scope_lines,omitempty"`
+	InScopeLines      []string           `json:"in_scope_lines,omitempty"`
+	OutOfScopeLines   []string           `json:"out_of_scope_lines,omitempty"`
+	CertificateImages []CertificateImage `json:"certificate_images,omitempty"`
 }
