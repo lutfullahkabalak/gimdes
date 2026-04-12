@@ -8,6 +8,8 @@ const props = defineProps<{
   cert: Certificate
   open: boolean
   badgeColor: 'success' | 'warning' | 'error' | 'neutral'
+  /** Arama kutusu metni; marka adında eşleşenleri sarı vurgular */
+  highlightQ?: string
 }>()
 
 const emit = defineEmits<{
@@ -54,7 +56,9 @@ const src = computed(() => logoUrl(props.cert.MarkaLogosu))
 
           <div class="min-w-0 flex-1">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-highlighted truncate font-semibold">{{ cert.MarkaAdi }}</span>
+              <span class="text-highlighted truncate font-semibold">
+                <GimdesSearchHighlight :text="cert.MarkaAdi" :query="highlightQ ?? ''" />
+              </span>
               <UBadge
                 :color="badgeColor"
                 variant="subtle"

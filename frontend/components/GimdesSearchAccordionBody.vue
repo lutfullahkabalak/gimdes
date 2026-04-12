@@ -53,7 +53,11 @@ const tableColumns: TableColumn<Row>[] = [
           :get-row-id="row => String(row.id)"
           sticky="header"
           class="min-w-full text-sm"
-        />
+        >
+          <template #metin-cell="{ row }">
+            <GimdesSearchHighlight :text="row.original.metin" :query="q" />
+          </template>
+        </UTable>
       </div>
     </template>
     <p v-else class="text-muted text-sm">

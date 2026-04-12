@@ -49,6 +49,40 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+export type QueryHighlightSegment = { text: string; highlight: boolean }
+
+/**
+ * Arama sorgusuyla aynı kelime-sınırı kuralını kullanır (`textMatchesQuery` ile uyumlu);
+ * eşleşen aralıkları vurgulamak için metni parçalara ayırır.
+ */
+export function splitQueryHighlightSegments(rawText: string, q: string): QueryHighlightSegment[] {
+  const qq = norm(q)
+  const plain = normalizeSearchWhitespace(String(rawText ?? '')).normalize('NFC')
+  if (!qq || !plain)
+    return [{ text: plain, highlight: false }]
+
+  const h = trLower(plain)
+  const re = new RegExp(`(?<![\\p{L}\\p{N}])${escapeRegExp(qq)}(?![\\p{L}\\p{N}])`, 'gu')
+  const segments: QueryHighlightSegment[] = []
+  let last = 0
+  let m: RegExpExecArray | null
+  while ((m = re.exec(h)) !== null) {
+    const start = m.index
+    const end = start + m[0].length
+    if (start > last)
+      segments.push({ text: plain.slice(last, start), highlight: false })
+    segments.push({ text: plain.slice(start, end), highlight: true })
+    last = end
+    if (m[0].length === 0)
+      re.lastIndex++
+  }
+  if (last < plain.length)
+    segments.push({ text: plain.slice(last), highlight: false })
+  if (segments.length === 0)
+    return [{ text: plain, highlight: false }]
+  return segments
+}
+
 /**
  * Sorgunun metinde kelime sınırıyla geçip geçmediği (ör. "afia" → "nafia" içinde eşleşmez).
  * Unicode harf/rakam dışındaki karakterler sınır sayılır.

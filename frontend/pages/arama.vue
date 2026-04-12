@@ -316,6 +316,7 @@ const showHint = computed(() =>
         <GimdesSearchResultAccordion
           v-if="matchesProductAccordion(searchQ, cert)"
           :cert="cert"
+          :highlight-q="searchQ"
           :open="accordionOpen[cert.SertifikaId] ?? false"
           :badge-color="certBadgeColor(cert)"
           @toggle="toggleAccordion(cert.SertifikaId)"
@@ -328,6 +329,7 @@ const showHint = computed(() =>
         <GimdesSearchResultRowSimple
           v-else
           :cert="cert"
+          :highlight-q="searchQ"
           :badge-color="certBadgeColor(cert)"
           @select="goBrand"
         />
