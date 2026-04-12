@@ -1,7 +1,11 @@
 import type { Certificate } from '~/types/gimdes'
 
-/** İptal veya süre dolumu — iptal önceliklidir (kırmızı). */
-export type CertAlertKind = 'cancelled' | 'expired'
+/** İptal, askı veya süre dolumu — iptal önceliklidir (kırmızı). Askı, iptal ile aynı kırmızı yüzeyde gösterilir. */
+export type CertAlertKind = 'cancelled' | 'suspended' | 'expired'
+
+function isRedAlertKind(k: CertAlertKind | null): boolean {
+  return k === 'cancelled' || k === 'suspended'
+}
 
 /**
  * Kategori bazlı süre mantığı:
@@ -63,6 +67,37 @@ export function isCertCancelled(cert: Certificate): boolean {
   return d.includes('iptal')
 }
 
+function textImpliesSuspendedCategoryOrPhrase(raw: string | null | undefined): boolean {
+  const t = (raw ?? '').toLocaleLowerCase('tr-TR')
+  if (t.includes('askıya') || t.includes('askiya'))
+    return true
+  // ASCII / farklı kodlama: "ASKIYA ALINANLAR" vb.
+  const folded = t.replace(/ı/g, 'i').replace(/İ/g, 'i')
+  if (folded.includes('askiya'))
+    return true
+  const d = t.trim()
+  // "Askıda", "askı"; "baskı" içinde yanlış eşleşme olmasın
+  if (d.startsWith('askı') || d.includes(' askı'))
+    return true
+  return false
+}
+
+/**
+ * Askıya alınmış (iptal değil).
+ * - Upstream `AskiyaAlmaAciklama` doluysa kayıt askı kapsamındadır (liste satırında
+ *   `KategoriAdi` çoğu zaman ürün sınıfıdır, "Askıya alınanlar" başlığı burada olmayabilir).
+ * - Ayrıca `Durum` / `KategoriAdi` metinleri askıyı ima edebilir.
+ */
+export function isCertSuspended(cert: Certificate): boolean {
+  if (isCertCancelled(cert))
+    return false
+  const ex = cert.AskiyaAlmaAciklama
+  if (typeof ex === 'string' && ex.trim().length > 0)
+    return true
+  return textImpliesSuspendedCategoryOrPhrase(cert.Durum)
+    || textImpliesSuspendedCategoryOrPhrase(cert.KategoriAdi)
+}
+
 /** Gün başına göre bitiş tarihi bugünden önce mi (iptal değilse). */
 export function parseCertEndDate(raw: string): Date | null {
   const s = raw?.trim()
@@ -121,6 +156,8 @@ export function isCertExpired(cert: Certificate): boolean {
 export function getCertAlertKind(cert: Certificate): CertAlertKind | null {
   if (isCertCancelled(cert))
     return 'cancelled'
+  if (isCertSuspended(cert))
+    return 'suspended'
   if (isCertExpired(cert))
     return 'expired'
   return null
@@ -128,22 +165,20 @@ export function getCertAlertKind(cert: Certificate): CertAlertKind | null {
 
 export function certBadgeColor(cert: Certificate): 'success' | 'warning' | 'error' | 'neutral' {
   const kind = getCertAlertKind(cert)
-  if (kind === 'cancelled')
+  if (isRedAlertKind(kind))
     return 'error'
   if (kind === 'expired')
     return 'warning'
   const durum = cert.Durum ?? ''
   if (durum === 'Aktif')
     return 'success'
-  if (durum.includes('Askı') || durum.includes('askı'))
-    return 'warning'
   return 'neutral'
 }
 
 /** Ana sayfa — kartın tamamı (gimdes-surface arka planını ezer). */
 export function certHomeTileShellClass(cert: Certificate): string {
   const k = getCertAlertKind(cert)
-  if (k === 'cancelled') {
+  if (isRedAlertKind(k)) {
     return '!border-red-400/45 !bg-gradient-to-br !from-red-100 !to-red-50/92 ring-red-500/20 dark:!from-red-950/80 dark:!to-red-950/35'
   }
   if (k === 'expired') {
@@ -155,7 +190,7 @@ export function certHomeTileShellClass(cert: Certificate): string {
 /** Ana sayfa — içerik kolonunun gradient’i. */
 export function certHomeTileInnerClass(cert: Certificate): string {
   const k = getCertAlertKind(cert)
-  if (k === 'cancelled') {
+  if (isRedAlertKind(k)) {
     return 'bg-gradient-to-b from-red-50/98 to-red-100/45 dark:from-red-950/30 dark:to-red-950/55'
   }
   if (k === 'expired') {
@@ -167,7 +202,7 @@ export function certHomeTileInnerClass(cert: Certificate): string {
 /** Ana sayfa — logo kutusu. */
 export function certHomeTileLogoPanelClass(cert: Certificate): string {
   const k = getCertAlertKind(cert)
-  if (k === 'cancelled') {
+  if (isRedAlertKind(k)) {
     return 'bg-red-100/75 ring-red-300/55 dark:bg-red-950/45 dark:ring-red-800/40'
   }
   if (k === 'expired') {
@@ -180,6 +215,8 @@ export function certHomeTileCornerLabel(cert: Certificate): string | null {
   const k = getCertAlertKind(cert)
   if (k === 'cancelled')
     return 'İptal'
+  if (k === 'suspended')
+    return 'Askıda'
   if (k === 'expired')
     return 'Süresi geçmiş'
   return null
@@ -188,7 +225,7 @@ export function certHomeTileCornerLabel(cert: Certificate): string | null {
 /** Arama sonuç kartları — mevcut yüzey üzerine kırmızı / sarı ton. */
 export function certCardSurfaceClass(cert: Certificate): string {
   const kind = getCertAlertKind(cert)
-  if (kind === 'cancelled') {
+  if (isRedAlertKind(kind)) {
     return 'bg-gradient-to-br from-red-500/22 to-elevated/30 ring-red-500/15 hover:border-red-400/65 hover:ring-red-500/25 dark:from-red-950/50'
   }
   if (kind === 'expired') {
@@ -198,7 +235,7 @@ export function certCardSurfaceClass(cert: Certificate): string {
 }
 
 export function certDetailPageShellClass(kind: CertAlertKind | null): string {
-  if (kind === 'cancelled') {
+  if (isRedAlertKind(kind)) {
     return 'min-h-[calc(100dvh-6rem)] w-full rounded-2xl border border-red-300/55 bg-red-50/90 px-4 py-6 shadow-sm sm:px-6 dark:border-red-900/55 dark:bg-red-950/40'
   }
   if (kind === 'expired') {

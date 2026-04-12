@@ -27,7 +27,7 @@ const logoPanelClass = computed(() => certHomeTileLogoPanelClass(props.cert))
 
 const cornerBadgeClass = computed(() => {
   const kind = getCertAlertKind(props.cert)
-  if (kind === 'cancelled')
+  if (kind === 'cancelled' || kind === 'suspended')
     return 'bg-red-600/90 text-white dark:bg-red-700/95'
   if (kind === 'expired')
     return 'bg-amber-600/90 text-white dark:bg-amber-700/95'

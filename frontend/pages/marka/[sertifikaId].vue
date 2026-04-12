@@ -79,12 +79,12 @@ const pageShellClass = computed(() => {
 
 const scopeInAccent = computed(() => {
   const k = alertKind.value
-  return k === 'cancelled' || k === 'expired' ? 'red' : 'emerald'
+  return k === 'cancelled' || k === 'suspended' || k === 'expired' ? 'red' : 'emerald'
 })
 
 const markaSectionAccent = computed(() => {
   const k = alertKind.value
-  return k === 'cancelled' || k === 'expired' ? 'red' : 'primary'
+  return k === 'cancelled' || k === 'suspended' || k === 'expired' ? 'red' : 'primary'
 })
 
 onMounted(() => {
@@ -112,6 +112,13 @@ onMounted(() => {
         variant="subtle"
         title="Bu sertifika iptal edilmiştir."
         :description="cert.IptalAciklamasi?.trim() || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'"
+      />
+      <UAlert
+        v-else-if="alertKind === 'suspended'"
+        color="error"
+        variant="subtle"
+        title="Bu sertifika askıya alınmıştır."
+        :description="cert.AskiyaAlmaAciklama?.trim() || cert.Durum?.trim() || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'"
       />
       <UAlert
         v-else-if="alertKind === 'expired'"
@@ -166,6 +173,69 @@ onMounted(() => {
             <p v-if="cert.SertifikaNo" class="mt-3 text-sm">
               Sertifika no: <span class="text-highlighted font-medium">{{ cert.SertifikaNo }}</span>
             </p>
+          </div>
+        </div>
+      </GimdesDetailSection>
+
+
+      <GimdesDetailSection
+        v-if="cert.in_scope_lines?.length"
+        title="Kapsam"
+        :accent="scopeInAccent"
+      >
+        <div class="space-y-3">
+          <UInput
+            v-model="inScopeFilter"
+            icon="i-lucide-search"
+            placeholder="Tabloda ara…"
+            clearable
+            class="w-full max-w-md"
+          />
+          <div class="overflow-x-auto rounded-lg border border-default">
+            <UTable
+              v-model:global-filter="inScopeFilter"
+              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
+              :data="inScopeTableRows"
+              :columns="scopeLineColumns"
+              :get-row-id="row => String(row.id)"
+              sticky="header"
+              class="min-w-full text-base"
+              :ui="{
+                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
+                th: 'text-base',
+              }"
+            />
+          </div>
+        </div>
+      </GimdesDetailSection>
+
+      <GimdesDetailSection
+        v-if="cert.out_of_scope_lines?.length"
+        title="Kapsam dışı"
+        accent="red"
+      >
+        <div class="space-y-3">
+          <UInput
+            v-model="outScopeFilter"
+            icon="i-lucide-search"
+            placeholder="Tabloda ara…"
+            clearable
+            class="w-full max-w-md"
+          />
+          <div class="overflow-x-auto rounded-lg border border-default">
+            <UTable
+              v-model:global-filter="outScopeFilter"
+              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
+              :data="outOfScopeTableRows"
+              :columns="scopeLineColumns"
+              :get-row-id="row => String(row.id)"
+              sticky="header"
+              class="min-w-full text-base"
+              :ui="{
+                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
+                th: 'text-base',
+              }"
+            />
           </div>
         </div>
       </GimdesDetailSection>
@@ -238,70 +308,17 @@ onMounted(() => {
               {{ cert.IptalAciklamasi.trim() }}
             </dd>
           </template>
+          <template v-if="cert.AskiyaAlmaAciklama?.trim()">
+            <dt class="text-muted">
+              Askı açıklaması
+            </dt>
+            <dd class="whitespace-pre-wrap text-red-600 dark:text-red-400">
+              {{ cert.AskiyaAlmaAciklama.trim() }}
+            </dd>
+          </template>
         </dl>
       </GimdesDetailSection>
 
-      <GimdesDetailSection
-        v-if="cert.in_scope_lines?.length"
-        title="Kapsam"
-        :accent="scopeInAccent"
-      >
-        <div class="space-y-3">
-          <UInput
-            v-model="inScopeFilter"
-            icon="i-lucide-search"
-            placeholder="Tabloda ara…"
-            clearable
-            class="w-full max-w-md"
-          />
-          <div class="overflow-x-auto rounded-lg border border-default">
-            <UTable
-              v-model:global-filter="inScopeFilter"
-              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
-              :data="inScopeTableRows"
-              :columns="scopeLineColumns"
-              :get-row-id="row => String(row.id)"
-              sticky="header"
-              class="min-w-full text-base"
-              :ui="{
-                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
-                th: 'text-base',
-              }"
-            />
-          </div>
-        </div>
-      </GimdesDetailSection>
-
-      <GimdesDetailSection
-        v-if="cert.out_of_scope_lines?.length"
-        title="Kapsam dışı"
-        accent="red"
-      >
-        <div class="space-y-3">
-          <UInput
-            v-model="outScopeFilter"
-            icon="i-lucide-search"
-            placeholder="Tabloda ara…"
-            clearable
-            class="w-full max-w-md"
-          />
-          <div class="overflow-x-auto rounded-lg border border-default">
-            <UTable
-              v-model:global-filter="outScopeFilter"
-              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
-              :data="outOfScopeTableRows"
-              :columns="scopeLineColumns"
-              :get-row-id="row => String(row.id)"
-              sticky="header"
-              class="min-w-full text-base"
-              :ui="{
-                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
-                th: 'text-base',
-              }"
-            />
-          </div>
-        </div>
-      </GimdesDetailSection>
     </template>
   </div>
 </template>
