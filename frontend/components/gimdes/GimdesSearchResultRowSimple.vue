@@ -14,7 +14,8 @@ const emit = defineEmits<{
   select: [cert: Certificate]
 }>()
 
-const src = computed(() => logoUrl(props.cert.MarkaLogosu))
+const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
+const { src } = useCachedLogo(rawLogoUrl)
 
 function onSelect() {
   emit('select', props.cert)

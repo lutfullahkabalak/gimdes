@@ -17,7 +17,8 @@ const emit = defineEmits<{
   select: [cert: Certificate]
 }>()
 
-const src = computed(() => logoUrl(props.cert.MarkaLogosu))
+const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
+const { src } = useCachedLogo(rawLogoUrl)
 
 const cornerLabel = computed(() => certHomeTileCornerLabel(props.cert))
 

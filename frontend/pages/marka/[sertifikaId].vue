@@ -39,7 +39,8 @@ const homeCrumbLabel = computed(() =>
 const cert = ref<Certificate | null>(null)
 const missing = ref(false)
 
-const logo = computed(() => logoUrl(cert.value?.MarkaLogosu ?? null))
+const rawLogoUrl = computed(() => logoUrl(cert.value?.MarkaLogosu ?? null))
+const { src: logo } = useCachedLogo(rawLogoUrl)
 
 const certImages = computed(() =>
   cert.value ? listCertificateImages(cert.value) : [],

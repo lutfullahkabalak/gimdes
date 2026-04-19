@@ -18,7 +18,8 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
-const src = computed(() => logoUrl(props.cert.MarkaLogosu))
+const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
+const { src } = useCachedLogo(rawLogoUrl)
 </script>
 
 <template>
