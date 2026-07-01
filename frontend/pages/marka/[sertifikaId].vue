@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TableColumn } from '@nuxt/ui'
 import type { Certificate } from '~/types/gimdes'
-import { certDetailPageShellClass, getCertAlertKind } from '~/utils/certStatus'
+import { certDetailPageShellClass, getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
 import { certificateThumbSrc, listCertificateImages } from '~/utils/certImages'
 import { logoUrl } from '~/utils/logoUrl'
 import { stripHtml, tableGlobalFilterTr } from '~/utils/matchScope'
@@ -206,6 +206,12 @@ const alertKind = computed(() => {
   return getCertAlertKind(cert.value)
 })
 
+const showHistoricalSuspensionNote = computed(() => {
+  if (!cert.value)
+    return false
+  return hasHistoricalSuspensionNote(cert.value)
+})
+
 const pageShellClass = computed(() => {
   if (!cert.value || missing.value)
     return ''
@@ -261,6 +267,13 @@ onMounted(() => {
         variant="subtle"
         title="Bu sertifikanın süresi dolmuştur."
         description="Bitiş tarihi geçmiş; güncel durum için firmayı doğrulamanız önerilir."
+      />
+      <UAlert
+        v-else-if="showHistoricalSuspensionNote"
+        color="neutral"
+        variant="subtle"
+        title="Geçmiş askı kaydı"
+        :description="cert.AskiyaAlmaAciklama?.trim() || ''"
       />
     </template>
 
@@ -443,12 +456,20 @@ onMounted(() => {
               {{ cert.IptalAciklamasi.trim() }}
             </dd>
           </template>
-          <template v-if="cert.AskiyaAlmaAciklama?.trim()">
+          <template v-if="cert.AskiyaAlmaAciklama?.trim() && alertKind === 'suspended'">
             <dt class="text-muted">
               Askı açıklaması
             </dt>
             <dd class="whitespace-pre-wrap text-red-600 dark:text-red-400">
               {{ cert.AskiyaAlmaAciklama.trim() }}
+            </dd>
+          </template>
+          <template v-else-if="showHistoricalSuspensionNote">
+            <dt class="text-muted">
+              Geçmiş askı kaydı
+            </dt>
+            <dd class="whitespace-pre-wrap text-muted">
+              {{ cert.AskiyaAlmaAciklama?.trim() }}
             </dd>
           </template>
         </dl>
