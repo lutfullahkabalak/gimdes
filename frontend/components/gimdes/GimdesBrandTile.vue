@@ -63,7 +63,7 @@ function onSelect() {
     </span>
     <span
       v-else
-      class="pointer-events-none absolute top-2 right-2 z-10 flex size-11 min-h-11 min-w-11 items-center justify-center rounded-full shadow-sm"
+      class="pointer-events-none absolute top-2 left-2 z-10 flex size-11 min-h-11 min-w-11 items-center justify-center rounded-full shadow-sm"
       :class="badgeClass"
       :title="cert.KategoriAdi"
     >
