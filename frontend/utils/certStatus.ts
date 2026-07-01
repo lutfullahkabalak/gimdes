@@ -54,10 +54,21 @@ export function durumSuggestsExpired(cert: Certificate): boolean {
 
 /** Upstream açıkça geçerli sertifika (tarih tek başına süresi dolmuş yapma). */
 export function durumSuggestsActive(cert: Certificate): boolean {
-  const d = (cert.Durum ?? '').toLocaleLowerCase('tr-TR').trim()
-  if (!d)
+  const raw = (cert.Durum ?? '').trim()
+  if (!raw)
     return false
+  if (raw === '0')
+    return true
+  const d = raw.toLocaleLowerCase('tr-TR')
   return d === 'aktif' || d.startsWith('aktif ') || d.includes('belgeli')
+}
+
+/** Upstream sayısal/metin `Durum` kodu şu an askıda mı. */
+export function durumSuggestsSuspended(cert: Certificate): boolean {
+  const raw = (cert.Durum ?? '').trim()
+  if (raw === '-4')
+    return true
+  return textImpliesSuspendedCategoryOrPhrase(cert.Durum)
 }
 
 export function isCertCancelled(cert: Certificate): boolean {
@@ -85,18 +96,29 @@ function textImpliesSuspendedCategoryOrPhrase(raw: string | null | undefined): b
 
 /**
  * Askıya alınmış (iptal değil).
- * - Upstream `AskiyaAlmaAciklama` doluysa kayıt askı kapsamındadır (liste satırında
- *   `KategoriAdi` çoğu zaman ürün sınıfıdır, "Askıya alınanlar" başlığı burada olmayabilir).
- * - Ayrıca `Durum` / `KategoriAdi` metinleri askıyı ima edebilir.
+ * - Birincil kaynak: upstream `Durum` kodu (`-4` = askıda).
+ * - `Durum: "0"` (aktif) ise `AskiyaAlmaAciklama` geçmiş not olabilir; askı sayılmaz.
+ * - Diğer durumlarda `AskiyaAlmaAciklama` veya `KategoriAdi` metin heuristikleri.
  */
 export function isCertSuspended(cert: Certificate): boolean {
   if (isCertCancelled(cert))
     return false
+  if (durumSuggestsSuspended(cert))
+    return true
+  if (durumSuggestsActive(cert))
+    return false
   const ex = cert.AskiyaAlmaAciklama
   if (typeof ex === 'string' && ex.trim().length > 0)
     return true
-  return textImpliesSuspendedCategoryOrPhrase(cert.Durum)
-    || textImpliesSuspendedCategoryOrPhrase(cert.KategoriAdi)
+  return textImpliesSuspendedCategoryOrPhrase(cert.KategoriAdi)
+}
+
+/** Aktif değil ama `AskiyaAlmaAciklama` geçmiş askı notu içeriyor. */
+export function hasHistoricalSuspensionNote(cert: Certificate): boolean {
+  const ex = cert.AskiyaAlmaAciklama
+  if (typeof ex !== 'string' || !ex.trim())
+    return false
+  return !isCertCancelled(cert) && !isCertSuspended(cert)
 }
 
 /** Gün başına göre bitiş tarihi bugünden önce mi (iptal değilse). */
