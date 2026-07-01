@@ -1,4 +1,5 @@
 import type { Certificate } from '~/types/gimdes'
+import { colorSetForCertificate } from '~/utils/categoryColor'
 
 /** İptal, askı veya süre dolumu — iptal önceliklidir (kırmızı). Askı, iptal ile aynı kırmızı yüzeyde gösterilir. */
 export type CertAlertKind = 'cancelled' | 'suspended' | 'expired'
@@ -184,7 +185,7 @@ export function certHomeTileShellClass(cert: Certificate): string {
   if (k === 'expired') {
     return '!border-amber-400/45 !bg-gradient-to-br !from-amber-100 !to-amber-50/92 ring-amber-500/15 dark:!from-amber-950/70 dark:!to-amber-950/32'
   }
-  return ''
+  return colorSetForCertificate(cert).shell
 }
 
 /** Ana sayfa — içerik kolonunun gradient’i. */
@@ -196,7 +197,7 @@ export function certHomeTileInnerClass(cert: Certificate): string {
   if (k === 'expired') {
     return 'bg-gradient-to-b from-amber-50/98 to-amber-100/40 dark:from-amber-950/40 dark:to-amber-950/50'
   }
-  return 'bg-gradient-to-b from-elevated/90 to-default'
+  return colorSetForCertificate(cert).inner
 }
 
 /** Ana sayfa — logo kutusu. */
@@ -208,7 +209,7 @@ export function certHomeTileLogoPanelClass(cert: Certificate): string {
   if (k === 'expired') {
     return 'bg-amber-100/75 ring-amber-300/50 dark:bg-amber-950/45 dark:ring-amber-800/40'
   }
-  return ''
+  return colorSetForCertificate(cert).logoPanel
 }
 
 export function certHomeTileCornerLabel(cert: Certificate): string | null {
