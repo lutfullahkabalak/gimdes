@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import { iconForCategory } from '~/utils/categoryIcon'
+import { colorSetForCertificate } from '~/utils/categoryColor'
 import {
   certHomeTileCornerLabel,
   certHomeTileInnerClass,
@@ -20,19 +22,24 @@ const emit = defineEmits<{
 const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
 const { src } = useCachedLogo(rawLogoUrl)
 
+const alertKind = computed(() => getCertAlertKind(props.cert))
+const isAlert = computed(() => alertKind.value !== null)
 const cornerLabel = computed(() => certHomeTileCornerLabel(props.cert))
+const categoryIcon = computed(() =>
+  iconForCategory({ KategoriAdi: props.cert.KategoriAdi, Href: '' }),
+)
 
 const shellClass = computed(() => certHomeTileShellClass(props.cert))
 const innerClass = computed(() => certHomeTileInnerClass(props.cert))
 const logoPanelClass = computed(() => certHomeTileLogoPanelClass(props.cert))
 
-const cornerBadgeClass = computed(() => {
-  const kind = getCertAlertKind(props.cert)
+const badgeClass = computed(() => {
+  const kind = alertKind.value
   if (kind === 'cancelled' || kind === 'suspended')
-    return 'bg-red-600/90 text-white dark:bg-red-700/95'
+    return 'bg-red-600/90 text-white shadow-sm ring-2 ring-white/70 dark:bg-red-700/95 dark:ring-white/15'
   if (kind === 'expired')
-    return 'bg-amber-600/90 text-white dark:bg-amber-700/95'
-  return ''
+    return 'bg-amber-600/90 text-white shadow-sm ring-2 ring-white/70 dark:bg-amber-700/95 dark:ring-white/15'
+  return colorSetForCertificate(props.cert).badge
 })
 
 function onSelect() {
@@ -48,11 +55,19 @@ function onSelect() {
     @click="onSelect"
   >
     <span
-      v-if="cornerLabel"
-      class="pointer-events-none absolute bottom-2 right-2 z-10 max-w-[calc(100%-1rem)] rounded-md px-2 py-1 text-center text-[0.65rem] font-bold leading-tight shadow-sm sm:text-xs"
-      :class="cornerBadgeClass"
+      v-if="isAlert && cornerLabel"
+      class="pointer-events-none absolute top-2 right-2 z-10 flex min-h-11 min-w-11 max-w-[4.5rem] items-center justify-center rounded-full px-1.5 py-1.5 text-center text-[0.6rem] font-bold leading-tight whitespace-normal sm:text-[0.65rem]"
+      :class="badgeClass"
     >
       {{ cornerLabel }}
+    </span>
+    <span
+      v-else
+      class="pointer-events-none absolute top-2 right-2 z-10 flex size-11 min-h-11 min-w-11 items-center justify-center rounded-full shadow-sm"
+      :class="badgeClass"
+      :title="cert.KategoriAdi"
+    >
+      <UIcon :name="categoryIcon" class="size-5 shrink-0" />
     </span>
     <div
       class="flex flex-1 flex-col items-center justify-start gap-2 pt-4 px-3 pb-3 text-center"
