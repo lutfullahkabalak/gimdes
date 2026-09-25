@@ -175,8 +175,7 @@ onUnmounted(() => {
   }
 })
 
-const inScopeFilter = ref('')
-const outScopeFilter = ref('')
+const scopeFilter = ref('')
 
 const inScopeTableRows = computed<ScopeLineRow[]>(() =>
   (cert.value?.in_scope_lines ?? []).map((raw, i) => ({
@@ -326,22 +325,25 @@ onMounted(() => {
       </GimdesDetailSection>
 
 
+      <UInput
+        v-if="cert.in_scope_lines?.length || cert.out_of_scope_lines?.length"
+        v-model="scopeFilter"
+        icon="i-lucide-search"
+        placeholder="Tabloda ara…"
+        aria-label="Kapsam ve kapsam dışı ürünlerde ara"
+        clearable
+        class="w-full max-w-md"
+      />
+
       <GimdesDetailSection
         v-if="cert.in_scope_lines?.length"
         title="Kapsam"
         :accent="scopeInAccent"
       >
         <div class="space-y-3">
-          <UInput
-            v-model="inScopeFilter"
-            icon="i-lucide-search"
-            placeholder="Tabloda ara…"
-            clearable
-            class="w-full max-w-md"
-          />
           <div class="overflow-x-auto rounded-lg border border-default">
             <UTable
-              v-model:global-filter="inScopeFilter"
+              v-model:global-filter="scopeFilter"
               :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
               :data="inScopeTableRows"
               :columns="scopeLineColumns"
@@ -363,16 +365,9 @@ onMounted(() => {
         accent="red"
       >
         <div class="space-y-3">
-          <UInput
-            v-model="outScopeFilter"
-            icon="i-lucide-search"
-            placeholder="Tabloda ara…"
-            clearable
-            class="w-full max-w-md"
-          />
           <div class="overflow-x-auto rounded-lg border border-default">
             <UTable
-              v-model:global-filter="outScopeFilter"
+              v-model:global-filter="scopeFilter"
               :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
               :data="outOfScopeTableRows"
               :columns="scopeLineColumns"
