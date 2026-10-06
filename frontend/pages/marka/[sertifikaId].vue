@@ -329,10 +329,12 @@ onMounted(() => {
         v-if="cert.in_scope_lines?.length || cert.out_of_scope_lines?.length"
         v-model="scopeFilter"
         icon="i-lucide-search"
+        size="xl"
         placeholder="Tabloda ara…"
         aria-label="Kapsam ve kapsam dışı ürünlerde ara"
         clearable
-        class="w-full max-w-md"
+        class="w-full"
+        :ui="{ base: 'min-h-14 rounded-xl text-base', leadingIcon: 'size-6' }"
       />
 
       <GimdesDetailSection
