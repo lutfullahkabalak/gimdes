@@ -2,8 +2,8 @@ services:
   backend:
     build:
       context: ./backend
-    ports:
-      - "1301:8080"
+    expose:
+      - "8080"
     environment:
       ADDR: ":8080"
       # İsteğe bağlı: yukarı akış GİMDES tabanı (boşsa uygulama varsayılanını kullanır)
@@ -13,10 +13,20 @@ services:
   frontend:
     build:
       context: ./frontend
-      args:
-        NUXT_PUBLIC_API_BASE: http://localhost:1301
-    ports:
-      - "1300:3000"
+    expose:
+      - "3000"
+    environment:
+      NUXT_PUBLIC_API_BASE: ""
     depends_on:
+      - backend
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+    ports:
+      - "${GIMDES_FRONTEND_PUBLISH_PORT:-1300}:80"
+    depends_on:
+      - frontend
       - backend
     restart: unless-stopped
