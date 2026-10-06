@@ -50,7 +50,7 @@ function onSelect() {
 <template>
   <button
     type="button"
-    class="gimdes-surface group relative flex aspect-square h-full w-full min-w-0 flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg hover:ring-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
+    class="gimdes-surface group relative flex h-full w-full min-w-0 flex-col overflow-hidden text-left transition duration-200 hover:-translate-y-0.5 hover:border-primary/35 hover:shadow-lg hover:ring-primary/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
     :class="shellClass"
     @click="onSelect"
   >
@@ -70,11 +70,11 @@ function onSelect() {
       <UIcon :name="categoryIcon" class="size-5 shrink-0" />
     </span>
     <div
-      class="flex flex-1 flex-col items-center justify-start gap-2 pt-4 px-3 pb-3 text-center"
+      class="flex flex-1 flex-col items-center justify-start gap-2 pt-4 px-3 pb-4 text-center"
       :class="innerClass"
     >
       <div
-        class="flex h-[52%] max-h-[8.5rem] w-full shrink-0 items-center justify-center rounded-xl px-2 shadow-inner ring-1 ring-inset"
+        class="flex h-20 w-full shrink-0 items-center justify-center rounded-xl px-2 shadow-inner ring-1 ring-inset sm:h-24"
         :class="logoPanelClass || 'bg-default/80 ring-default/60'"
       >
         <img
@@ -90,10 +90,10 @@ function onSelect() {
         />
       </div>
       <div class="w-full min-w-0 px-0.5">
-        <p class="text-highlighted line-clamp-2 text-sm font-semibold leading-snug tracking-tight">
+        <p class="text-highlighted text-sm font-semibold leading-snug tracking-tight wrap-anywhere">
           {{ cert.MarkaAdi }}
         </p>
-        <p class="text-muted mt-1 line-clamp-2 text-xs leading-snug">
+        <p class="text-muted mt-1 text-xs leading-snug wrap-anywhere">
           {{ cert.FirmaAdi }}
         </p>
       </div>

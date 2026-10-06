@@ -11,6 +11,28 @@ html {
   color-scheme: light;
 }
 
+.gimdes-category-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-border-accented) transparent;
+}
+
+.gimdes-category-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.gimdes-category-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gimdes-category-scroll::-webkit-scrollbar-thumb {
+  background: var(--ui-border-accented);
+  border-radius: 999px;
+}
+
+.gimdes-category-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-text-muted);
+}
+
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-webkit-search-decoration {
   -webkit-appearance: none;

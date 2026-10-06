@@ -60,29 +60,15 @@ function onSubmit() {
         </div>
       </div>
 
-      <div class="border-default/70 border-t border-dashed pt-6">
+      <div class="border-default/70 hidden border-t border-dashed pt-6 lg:block">
         <label class="text-muted mb-2 block text-xs font-medium sm:sr-only" for="gimdes-home-search">
           Arama
         </label>
-        <UInput
+        <GimdesHomeSearchInput
           id="gimdes-home-search"
           v-model="query"
-          type="search"
-          placeholder="Örn. piliç, süt, baharat…"
-          autocomplete="off"
-          size="xl"
-          variant="outline"
-          :ui="{
-            base: 'h-12 rounded-[1.35rem] pl-[3.55rem] text-base shadow-sm sm:h-14 sm:rounded-[1.65rem] sm:pl-[3.85rem] sm:text-lg',
-            leading: 'pointer-events-none ps-3.5',
-          }"
-          class="w-full"
-          @keydown.enter.prevent="onSubmit"
-        >
-          <template #leading>
-            <UIcon name="i-lucide-search" class="size-6 shrink-0 text-primary sm:size-7" aria-hidden="true" />
-          </template>
-        </UInput>
+          @submit="onSubmit"
+        />
       </div>
     </div>
   </section>

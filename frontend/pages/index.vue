@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
 import { iconForCategory } from '~/utils/categoryIcon'
+import { certBadgeColor } from '~/utils/certStatus'
 
 const HOME_SCROLL_KEY = 'gimdes_home_scroll_y'
 
@@ -42,10 +43,13 @@ const categoryItems = computed(() => {
   return rows
 })
 
-const selectedCategoryIcon = computed(() => {
-  const row = categoryItems.value.find(r => r.id === categoryId.value)
-  return row?.icon ?? 'i-lucide-layout-grid'
-})
+const categoryMenuOpen = ref(false)
+const mobileBrandView = useState<'grid' | 'list'>('gimdes-home-mobileBrandView', () => 'grid')
+
+function chooseCategory(id: string) {
+  categoryId.value = id
+  categoryMenuOpen.value = false
+}
 
 async function loadCategories() {
   categoriesLoading.value = true
@@ -181,91 +185,137 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-10">
-    <GimdesHomeSearchHero v-model="homeSearchDraft" @submit="goToSearchPage" />
-
-    <section>
-      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 class="text-highlighted text-lg font-semibold">
-            Kategori
-          </h2>
-        </div>
+  <div class="flex flex-col gap-10 pt-16 lg:pt-0">
+    <header class="fixed inset-x-0 top-0 z-40 flex items-center gap-2 border-b border-default bg-default/95 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] shadow-sm backdrop-blur-md lg:hidden" aria-label="Arama ve kategoriler">
+      <form class="min-w-0 flex-1" role="search" @submit.prevent="goToSearchPage">
+        <GimdesHomeSearchInput
+          v-model="homeSearchDraft"
+          aria-label="Marka veya ürün ara"
+          @submit="goToSearchPage"
+        />
+      </form>
+      <USlideover
+        v-model:open="categoryMenuOpen"
+        title="Kategoriler"
+        description="Markaları kategoriye göre filtreleyin."
+        :close="{ 'aria-label': 'Kategori menüsünü kapat' }"
+      >
         <UButton
-          v-if="categoryId !== '__all__'"
-          label="Tüm markalar"
+          icon="i-lucide-menu"
           color="neutral"
           variant="outline"
-          size="sm"
-          @click="categoryId = '__all__'"
+          size="xl"
+          class="size-12 shrink-0 justify-center"
+          aria-label="Kategori menüsünü aç"
         />
-      </div>
-
-      <UAlert
-        v-if="categoriesError"
-        color="error"
-        variant="subtle"
-        class="mb-4"
-        :title="categoriesError"
-      />
-
-      <USelectMenu
-        v-model="categoryId"
-        value-key="id"
-        :items="categoryItems"
-        :loading="categoriesLoading"
-        :disabled="categoriesLoading && !categories.length"
-        placeholder="Kategori seçin…"
-        searchable
-        class="max-w-md w-full"
-        size="lg"
-      >
-        <template #leading>
-          <UIcon :name="selectedCategoryIcon" class="text-muted size-5" />
+        <template #body>
+          <GimdesCategoryList
+            :items="categoryItems"
+            :selected-id="categoryId"
+            :loading="categoriesLoading"
+            :error="categoriesError"
+            @select="chooseCategory"
+          />
         </template>
-      </USelectMenu>
-    </section>
+      </USlideover>
+    </header>
 
-    <section>
-      <div class="mb-4">
-        <h2 class="text-highlighted text-lg font-semibold">
-          Markalar
-        </h2>
-      </div>
+    <GimdesHomeSearchHero v-model="homeSearchDraft" @submit="goToSearchPage" />
 
-      <UAlert
-        v-if="listError"
-        color="error"
-        variant="subtle"
-        class="mb-4"
-        :title="listError"
-      />
+    <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_18rem] lg:gap-8">
+      <section class="min-w-0">
+        <div class="mb-4">
+          <h2 class="text-highlighted text-lg font-semibold">
+            Markalar
+          </h2>
+          <div class="mt-3 flex gap-2 lg:hidden" role="group" aria-label="Marka görünümü">
+            <UButton
+              aria-label="Izgara görünümü"
+              icon="i-lucide-layout-grid"
+              :color="mobileBrandView === 'grid' ? 'primary' : 'neutral'"
+              :variant="mobileBrandView === 'grid' ? 'soft' : 'outline'"
+              :aria-pressed="mobileBrandView === 'grid'"
+              size="lg"
+              class="size-11 justify-center"
+              @click="mobileBrandView = 'grid'"
+            />
+            <UButton
+              aria-label="Liste görünümü"
+              icon="i-lucide-list"
+              :color="mobileBrandView === 'list' ? 'primary' : 'neutral'"
+              :variant="mobileBrandView === 'list' ? 'soft' : 'outline'"
+              :aria-pressed="mobileBrandView === 'list'"
+              size="lg"
+              class="size-11 justify-center"
+              @click="mobileBrandView = 'list'"
+            />
+          </div>
+        </div>
 
-      <div
-        v-if="listLoading"
-        class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-      >
-        <USkeleton v-for="n in 10" :key="n" class="aspect-square rounded-2xl" />
-      </div>
-
-      <div
-        v-else
-        class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-      >
-        <GimdesBrandTile
-          v-for="cert in listCerts"
-          :key="cert.SertifikaId"
-          :cert="cert"
-          @select="goBrand"
+        <UAlert
+          v-if="listError"
+          color="error"
+          variant="subtle"
+          class="mb-4"
+          :title="listError"
         />
-      </div>
 
-      <p
-        v-if="!listLoading && !listCerts.length"
-        class="text-muted py-8 text-center text-sm"
-      >
-        Bu listede kayıt yok.
-      </p>
-    </section>
+        <div
+          v-if="listLoading"
+          class="grid gap-4 lg:grid-cols-3 xl:grid-cols-4"
+          :class="mobileBrandView === 'list' ? 'grid-cols-1' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'"
+        >
+          <USkeleton
+            v-for="n in 10"
+            :key="n"
+            class="rounded-2xl lg:aspect-square lg:h-auto"
+            :class="mobileBrandView === 'list' ? 'h-24' : 'aspect-square'"
+          />
+        </div>
+
+        <div
+          v-else
+          class="grid auto-rows-fr grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 xl:grid-cols-4"
+          :class="mobileBrandView === 'list' ? 'hidden lg:grid' : ''"
+        >
+          <GimdesBrandTile
+            v-for="cert in listCerts"
+            :key="cert.SertifikaId"
+            :cert="cert"
+            @select="goBrand"
+          />
+        </div>
+
+        <div v-if="!listLoading && mobileBrandView === 'list'" class="flex flex-col gap-3 lg:hidden">
+          <GimdesSearchResultRowSimple
+            v-for="cert in listCerts"
+            :key="cert.SertifikaId"
+            :cert="cert"
+            :badge-color="certBadgeColor(cert)"
+            @select="goBrand"
+          />
+        </div>
+
+        <p
+          v-if="!listLoading && !listCerts.length"
+          class="text-muted py-8 text-center text-sm"
+        >
+          Bu listede kayıt yok.
+        </p>
+      </section>
+
+      <aside class="gimdes-category-scroll sticky top-8 hidden max-h-[calc(100dvh-4rem)] overflow-y-auto rounded-2xl border border-default bg-default p-4 lg:block" aria-label="Kategoriler">
+        <h2 class="text-highlighted mb-4 text-lg font-semibold">
+          Kategoriler
+        </h2>
+        <GimdesCategoryList
+          :items="categoryItems"
+          :selected-id="categoryId"
+          :loading="categoriesLoading"
+          :error="categoriesError"
+          @select="chooseCategory"
+        />
+      </aside>
+    </div>
   </div>
 </template>
