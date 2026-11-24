@@ -1,68 +1,36 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
-import { certCardSurfaceClass } from '~/utils/certStatus'
-import { logoUrl } from '~/utils/logoUrl'
+import { categoryNameTr } from '~/utils/certDisplay'
 
-const props = defineProps<{
+defineProps<{
   cert: Certificate
-  badgeColor: 'success' | 'warning' | 'error' | 'neutral'
   /** Arama kutusu metni; marka adında eşleşenleri sarı vurgular */
   highlightQ?: string
 }>()
 
-const emit = defineEmits<{
+defineEmits<{
   select: [cert: Certificate]
 }>()
-
-const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
-const { src } = useCachedLogo(rawLogoUrl)
-
-function onSelect() {
-  emit('select', props.cert)
-}
 </script>
 
 <template>
   <button
     type="button"
-    class="gimdes-surface group flex w-full cursor-pointer items-center gap-3 bg-gradient-to-br from-default to-elevated/30 p-4 text-left transition duration-200 hover:-translate-y-px hover:border-primary/30 hover:shadow-md hover:ring-primary/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-default"
-    :class="certCardSurfaceClass(cert)"
-    @click="onSelect"
+    class="group flex w-full cursor-pointer items-center gap-3 px-3 py-3 text-left transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary sm:gap-4 sm:px-4"
+    @click="$emit('select', cert)"
   >
-    <img
-      v-if="src"
-      :src="src"
-      alt=""
-      class="size-12 shrink-0 rounded-xl border border-default/60 bg-white object-contain p-1 shadow-sm"
-    >
-    <UIcon
-      v-else
-      name="i-lucide-building-2"
-      class="text-muted size-12 shrink-0 rounded-xl border border-default/60 bg-elevated/50 p-2.5"
-    />
-
-    <div class="min-w-0 flex-1">
-      <div class="flex flex-wrap items-center gap-2">
-        <span class="text-highlighted font-semibold transition-colors group-hover:text-primary">
+    <GimdesBrandLogo :cert="cert" class="size-14 shrink-0 rounded-lg border border-line p-1" />
+    <span class="min-w-0 flex-1">
+      <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span class="text-highlighted font-bold wrap-anywhere group-hover:text-primary">
           <GimdesSearchHighlight :text="cert.MarkaAdi" :query="highlightQ ?? ''" />
         </span>
-        <UBadge
-          :color="badgeColor"
-          variant="subtle"
-          size="xs"
-          class="shrink-0"
-        >
-          {{ cert.Durum }}
-        </UBadge>
-      </div>
-      <div class="text-muted mt-0.5 text-sm leading-snug">
-        {{ cert.FirmaAdi }} · {{ cert.KategoriAdi }}
-      </div>
-    </div>
-
-    <UIcon
-      name="i-lucide-arrow-right"
-      class="text-muted size-5 shrink-0 opacity-0 transition group-hover:translate-x-0.5 group-hover:opacity-100"
-    />
+        <GimdesStatusPill :cert="cert" />
+      </span>
+      <span class="text-muted mt-0.5 block text-sm leading-snug wrap-anywhere">
+        {{ categoryNameTr(cert.KategoriAdi) }} · {{ cert.FirmaAdi }}
+      </span>
+    </span>
+    <UIcon name="i-lucide-chevron-right" class="text-muted size-5 shrink-0" aria-hidden="true" />
   </button>
 </template>

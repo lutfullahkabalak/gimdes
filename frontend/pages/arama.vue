@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
-import { certBadgeColor } from '~/utils/certStatus'
 import { matchesProductAccordion } from '~/utils/matchScope'
 
 const DEBOUNCE_MS = 400
@@ -185,140 +184,87 @@ const showHint = computed(() =>
 </script>
 
 <template>
-  <div class="flex flex-col gap-6">
-    <UBreadcrumb
-      :items="[
-        { label: 'Ana sayfa', to: '/' },
-        { label: 'Arama' },
-      ]"
-    />
-
-    <!-- Search header -->
-    <section
-      class="rounded-2xl border border-primary/20 bg-gradient-to-br from-primary/5 to-transparent p-5 ring-1 ring-primary/10 sm:p-6"
-    >
-      <div class="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 class="text-highlighted text-lg font-semibold tracking-tight sm:text-xl">
-            Helal sertifika araması
-          </h1>
-          <p class="text-muted mt-1 max-w-xl text-sm leading-relaxed">
-            Marka, firma veya ürün adını yazın; sonuçlar otomatik güncellenir.
-          </p>
-        </div>
-        <UBadge
-          v-if="searchResults.length"
-          color="primary"
-          variant="subtle"
-          size="md"
-          class="shrink-0"
-        >
-          {{ searchResults.length }} sonuç
-        </UBadge>
-      </div>
-
-      <div class="relative">
-        <UInput
+  <div class="mx-auto max-w-4xl pt-16">
+    <GimdesSiteHeader>
+      <div class="min-w-0 flex-1" role="search">
+        <GimdesHomeSearchInput
           v-model="searchQ"
-          type="search"
           placeholder="Marka, firma veya ürün yazın…"
-          autocomplete="off"
-          size="xl"
-          variant="outline"
-          :ui="{
-            base: 'h-12 rounded-[1.35rem] pl-[3.55rem] pr-12 text-base shadow-sm sm:h-14 sm:rounded-[1.65rem] sm:pl-[3.85rem] sm:text-lg',
-            leading: 'pointer-events-none ps-3.5',
-          }"
-          class="w-full"
-        >
-          <template #leading>
-            <UIcon name="i-lucide-search" class="size-6 shrink-0 text-primary sm:size-7" aria-hidden="true" />
-          </template>
-        </UInput>
-        <div class="absolute end-3 top-1/2 flex -translate-y-1/2 items-center gap-1.5">
-          <UIcon
-            v-if="searchLoading"
-            name="i-lucide-loader-2"
-            class="text-primary size-5 animate-spin"
-          />
-          <button
-            v-else-if="searchQ"
-            type="button"
-            class="text-muted hover:text-highlighted rounded-md p-0.5 transition"
-            aria-label="Aramayı temizle"
-            @click="searchQ = ''"
-          >
-            <UIcon name="i-lucide-x" class="size-5" />
-          </button>
-        </div>
+          aria-label="Marka, firma veya ürün ara"
+          :loading="searchLoading"
+          clearable
+        />
       </div>
-    </section>
+    </GimdesSiteHeader>
 
-    <!-- Error -->
+    <div class="mb-5">
+      <UBreadcrumb
+        :items="[
+          { label: 'Ana sayfa', to: '/' },
+          { label: 'Arama' },
+        ]"
+        class="mb-3"
+      />
+      <h1 class="text-highlighted text-2xl font-bold tracking-tight text-balance wrap-anywhere">
+        {{ lastExecutedQuery ? `“${lastExecutedQuery}” için sonuçlar` : 'Helal sertifika araması' }}
+      </h1>
+      <p class="text-muted mt-1" aria-live="polite">
+        <template v-if="searchLoading">
+          Aranıyor…
+        </template>
+        <template v-else-if="searchResults.length">
+          {{ searchResults.length }} kayıt bulundu. Eşleşen ürünleri görmek için satıra dokunun.
+        </template>
+        <template v-else-if="searchQ.trim().length > 0 && searchQ.trim().length < 3">
+          Aramak için en az 3 harf yazın.
+        </template>
+        <template v-else-if="showHint">
+          Marka, firma veya ürün adını yazın; sonuçlar kendiliğinden listelenir.
+        </template>
+      </p>
+    </div>
+
     <UAlert
       v-if="searchError"
       color="error"
       variant="subtle"
-      :title="searchError"
+      class="mb-4"
+      title="Arama tamamlanamadı"
+      :description="searchError"
+      :actions="[{ label: 'Tekrar dene', color: 'error', variant: 'soft', onClick: () => { executeSearch(searchQ.trim()) } }]"
     />
 
-    <!-- Initial hint -->
-    <div
-      v-if="showHint"
-      class="flex flex-col items-center gap-3 py-12 text-center"
-    >
-      <UIcon name="i-lucide-search" class="text-muted size-12 opacity-40" />
-      <p class="text-muted max-w-xs text-sm leading-relaxed">
-        Yukarıdaki kutuya yazmaya başlayın; sonuçlar hazır olduğunda listelenir.
+    <div v-if="noResults" class="gimdes-surface flex flex-col items-center gap-2 px-4 py-14 text-center">
+      <UIcon name="i-lucide-search-x" class="text-muted size-9" />
+      <p class="text-highlighted text-lg font-bold">
+        Sonuç bulunamadı
+      </p>
+      <p class="text-muted max-w-sm">
+        Yazımı kontrol edin veya daha kısa, genel bir kelimeyle deneyin.
       </p>
     </div>
 
-    <!-- No results -->
-    <div
-      v-if="noResults"
-      class="border-default flex flex-col items-center gap-3 rounded-xl border border-dashed py-10 text-center"
-    >
-      <UIcon name="i-lucide-search-x" class="text-muted size-10" />
-      <div>
-        <p class="text-highlighted text-sm font-medium">
-          Sonuç bulunamadı
-        </p>
-        <p class="text-muted mt-1 text-sm">
-          Farklı bir kelime ile tekrar deneyin.
-        </p>
-      </div>
-    </div>
-
-    <!-- Loading skeleton (only when no cached results) -->
-    <div v-if="searchLoading && !searchResults.length" class="flex flex-col gap-3">
-      <div
-        v-for="n in 6"
-        :key="n"
-        class="gimdes-surface flex items-center gap-3 p-4"
-      >
-        <USkeleton class="size-12 shrink-0 rounded-xl" />
+    <div v-if="searchLoading && !searchResults.length" class="gimdes-surface divide-y divide-line">
+      <div v-for="n in 6" :key="n" class="flex items-center gap-4 p-4">
+        <USkeleton class="size-14 shrink-0 rounded-lg" />
         <div class="flex-1 space-y-2">
-          <USkeleton class="h-4 w-2/5 rounded-lg" />
-          <USkeleton class="h-3 w-3/5 rounded-lg" />
+          <USkeleton class="h-4 w-2/5" />
+          <USkeleton class="h-3 w-3/5" />
         </div>
-        <USkeleton class="h-9 w-16 shrink-0 rounded-xl" />
       </div>
     </div>
 
-    <!-- Results -->
-    <div v-if="searchResults.length" class="flex flex-col gap-3">
-      <p class="text-muted text-sm">
-        <span class="text-highlighted font-medium">{{ searchResults.length }}</span>
-        kayıt bulundu. Ürün/kapsam eşleşmelerini görmek için satıra tıklayın.
-      </p>
-
+    <div
+      v-if="searchResults.length"
+      class="gimdes-surface divide-y divide-line overflow-hidden transition-opacity"
+      :class="{ 'opacity-60': searchLoading }"
+    >
       <template v-for="cert in searchResults" :key="cert.SertifikaId">
         <GimdesSearchResultAccordion
           v-if="matchesProductAccordion(searchQ, cert)"
           :cert="cert"
           :highlight-q="searchQ"
           :open="accordionOpen[cert.SertifikaId] ?? false"
-          :badge-color="certBadgeColor(cert)"
           @toggle="toggleAccordion(cert.SertifikaId)"
           @update:open="(v: boolean) => setAccordionOpen(cert.SertifikaId, v)"
           @detail="goBrand(cert)"
@@ -330,7 +276,6 @@ const showHint = computed(() =>
           v-else
           :cert="cert"
           :highlight-q="searchQ"
-          :badge-color="certBadgeColor(cert)"
           @select="goBrand"
         />
       </template>

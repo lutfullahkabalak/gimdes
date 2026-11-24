@@ -1,12 +1,7 @@
 import type { Certificate } from '~/types/gimdes'
-import { colorSetForCertificate } from '~/utils/categoryColor'
 
 /** İptal, askı veya süre dolumu — iptal önceliklidir (kırmızı). Askı, iptal ile aynı kırmızı yüzeyde gösterilir. */
 export type CertAlertKind = 'cancelled' | 'suspended' | 'expired'
-
-function isRedAlertKind(k: CertAlertKind | null): boolean {
-  return k === 'cancelled' || k === 'suspended'
-}
 
 /**
  * Kategori bazlı süre mantığı:
@@ -206,85 +201,4 @@ export function getCertAlertKind(cert: Certificate): CertAlertKind | null {
   if (isCertExpired(cert))
     return 'expired'
   return null
-}
-
-export function certBadgeColor(cert: Certificate): 'success' | 'warning' | 'error' | 'neutral' {
-  const kind = getCertAlertKind(cert)
-  if (isRedAlertKind(kind))
-    return 'error'
-  if (kind === 'expired')
-    return 'warning'
-  const durum = cert.Durum ?? ''
-  if (durum === 'Aktif')
-    return 'success'
-  return 'neutral'
-}
-
-/** Ana sayfa — kartın tamamı (gimdes-surface arka planını ezer). */
-export function certHomeTileShellClass(cert: Certificate): string {
-  const k = getCertAlertKind(cert)
-  if (isRedAlertKind(k)) {
-    return '!border-red-400/45 !bg-gradient-to-br !from-red-100 !to-red-50/92 ring-red-500/20 dark:!from-red-950/80 dark:!to-red-950/35'
-  }
-  if (k === 'expired') {
-    return '!border-amber-400/45 !bg-gradient-to-br !from-amber-100 !to-amber-50/92 ring-amber-500/15 dark:!from-amber-950/70 dark:!to-amber-950/32'
-  }
-  return colorSetForCertificate(cert).shell
-}
-
-/** Ana sayfa — içerik kolonunun gradient’i. */
-export function certHomeTileInnerClass(cert: Certificate): string {
-  const k = getCertAlertKind(cert)
-  if (isRedAlertKind(k)) {
-    return 'bg-gradient-to-b from-red-50/98 to-red-100/45 dark:from-red-950/30 dark:to-red-950/55'
-  }
-  if (k === 'expired') {
-    return 'bg-gradient-to-b from-amber-50/98 to-amber-100/40 dark:from-amber-950/40 dark:to-amber-950/50'
-  }
-  return colorSetForCertificate(cert).inner
-}
-
-/** Ana sayfa — logo kutusu. */
-export function certHomeTileLogoPanelClass(cert: Certificate): string {
-  const k = getCertAlertKind(cert)
-  if (isRedAlertKind(k)) {
-    return 'bg-red-100/75 ring-red-300/55 dark:bg-red-950/45 dark:ring-red-800/40'
-  }
-  if (k === 'expired') {
-    return 'bg-amber-100/75 ring-amber-300/50 dark:bg-amber-950/45 dark:ring-amber-800/40'
-  }
-  return colorSetForCertificate(cert).logoPanel
-}
-
-export function certHomeTileCornerLabel(cert: Certificate): string | null {
-  const k = getCertAlertKind(cert)
-  if (k === 'cancelled')
-    return 'İptal'
-  if (k === 'suspended')
-    return 'Askıda'
-  if (k === 'expired')
-    return 'Süresi geçmiş'
-  return null
-}
-
-/** Arama sonuç kartları — mevcut yüzey üzerine kırmızı / sarı ton. */
-export function certCardSurfaceClass(cert: Certificate): string {
-  const kind = getCertAlertKind(cert)
-  if (isRedAlertKind(kind)) {
-    return 'bg-gradient-to-br from-red-500/22 to-elevated/30 ring-red-500/15 hover:border-red-400/65 hover:ring-red-500/25 dark:from-red-950/50'
-  }
-  if (kind === 'expired') {
-    return 'bg-gradient-to-br from-amber-400/26 to-elevated/30 ring-amber-500/12 hover:border-amber-400/60 hover:ring-amber-500/20 dark:from-amber-950/45'
-  }
-  return ''
-}
-
-export function certDetailPageShellClass(kind: CertAlertKind | null): string {
-  if (isRedAlertKind(kind)) {
-    return 'min-h-[calc(100dvh-6rem)] w-full rounded-2xl border border-red-300/55 bg-red-50/90 px-4 py-6 shadow-sm sm:px-6 dark:border-red-900/55 dark:bg-red-950/40'
-  }
-  if (kind === 'expired') {
-    return 'min-h-[calc(100dvh-6rem)] w-full rounded-2xl border border-amber-300/60 bg-amber-50/90 px-4 py-6 shadow-sm sm:px-6 dark:border-amber-900/50 dark:bg-amber-950/35'
-  }
-  return ''
 }

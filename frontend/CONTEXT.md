@@ -16,24 +16,28 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 - `components/gimdes/GimdesSearchResultRowSimple.vue` — Arama satırı
 - `components/gimdes/GimdesSearchResultAccordion.vue` — Arama accordion satırı
 
+- `components/gimdes/GimdesSiteHeader.vue` — Sabit üst çubuk; arama sayfasında arama kutusunu taşır
+- `components/gimdes/GimdesStatusPill.vue`, `GimdesBrandLogo.vue`, `GimdesScopeList.vue` — Ortak durum, logo, kapsam satırı
+
+## Tasarım ilkeleri (2026-11-24)
+
+- Zemin nötr; yeşil/sarı/kırmızı yalnızca sertifika durumu ve birincil eylem içindir. Kategori renkleri kaldırıldı, durum renkleriyle karışıyordu.
+- Ham upstream değeri gösterilmez: durum kodu etikete, ISO tarih GG.AA.YYYY'ye, iki dilli kategori Türkçe ada çevrilir; 0001 tarihleri "Belirtilmemiş".
+- Geçersiz sertifikanın kapsamında onay işareti yoktur. Kapsam dışı arama eşleşmesi kırmızı ve açık yazılır.
+- Renk ve yazı tipi belirteçleri `assets/css/main.css` içindedir (Hanken Grotesk, `@nuxt/fonts` derlemede indirir).
+
 ## Yardımcılar
 
 | Dosya | Rol |
 |-------|-----|
 | `utils/categoryIcon.ts` | Kategori adı → Lucide ikon |
-| `utils/categoryColor.ts` | Kategori adı → Tailwind renk seti (shell, inner, logoPanel, badge) |
-| `utils/certStatus.ts` | İptal / askı / süre dolumu tespiti ve kart yüzey sınıfları |
+| `utils/certDisplay.ts` | Durum etiketi/tonu, tarih, kategori adı ve web adresi gösterimi |
+| `utils/certStatus.ts` | İptal / askı / süre dolumu tespiti |
 | `utils/logoUrl.ts` | Marka logosu URL |
 | `composables/useGimdesApi.ts` | REST API çağrıları |
 | `composables/useCachedLogo.ts` | Logo IndexedDB önbelleği |
 
 ## Tamamlanan tasklar
-
-### Kategori bazlı marka kutucuğu renklendirme (2026-07-01)
-
-- **Normal kartlar:** `KategoriAdi` ile orta yoğunluk gradient renk (`categoryColor.ts`); sol üst yuvarlak rozet içinde kategori ikonu.
-- **Sorunlu kartlar:** Mevcut kırmızı/amber tam kart renkleri korundu; durum etiketi sağ üst yuvarlak metin rozeti (çok satırlı, örn. "Süresi geçmiş").
-- **Kapsam dışı:** Arama sonuçları (sonra ele alınacak).
 
 ### ALPEDO yanlış "Askıda" etiketi düzeltmesi (2026-07-01)
 

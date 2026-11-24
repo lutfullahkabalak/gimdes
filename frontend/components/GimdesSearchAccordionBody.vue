@@ -1,64 +1,39 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
 import type { Certificate } from '~/types/gimdes'
-import { productLinesForAccordion, stripHtml, tableGlobalFilterTr } from '~/utils/matchScope'
-
-type Row = { id: number; metin: string }
+import { getCertAlertKind } from '~/utils/certStatus'
+import { isOutOfScopeMatch, productLinesForAccordion, stripHtml, textIncludesTr } from '~/utils/matchScope'
 
 const props = defineProps<{
   q: string
   cert: Certificate
 }>()
 
-const lines = computed(() => productLinesForAccordion(props.q, props.cert))
-
-const tableFilter = ref('')
-
-const tableRows = computed<Row[]>(() =>
-  lines.value.map((line, i) => ({
-    id: i,
-    metin: stripHtml(line) || '—',
-  })),
-)
-
-const tableColumns: TableColumn<Row>[] = [
-  {
-    accessorKey: 'metin',
-    header: 'Ürün / kapsam',
-    meta: { class: { td: 'align-top' } },
-  },
-]
+const lines = computed(() => productLinesForAccordion(props.q, props.cert).map(l => stripHtml(l) || '—'))
+const outside = computed(() => isOutOfScopeMatch(props.q, props.cert))
+const filter = ref('')
+const visible = computed(() => lines.value.filter(l => textIncludesTr(filter.value, l)))
 </script>
 
 <template>
-  <div class="border-default/80 space-y-3 border-t bg-elevated/20 p-4 sm:p-5">
-    <p class="text-muted text-xs font-semibold uppercase tracking-wide">
-      Eşleşen ürün / kapsam
-    </p>
+  <div class="space-y-3 border-t border-line bg-paper px-3 py-4 sm:px-4">
     <template v-if="lines.length">
-      <UInput
-        v-model="tableFilter"
-        icon="i-lucide-search"
-        placeholder="Tabloda ara…"
-        clearable
-        class="w-full max-w-md"
-        size="sm"
-      />
-      <div class="overflow-x-auto rounded-lg border border-default">
-        <UTable
-          v-model:global-filter="tableFilter"
-          :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
-          :data="tableRows"
-          :columns="tableColumns"
-          :get-row-id="row => String(row.id)"
-          sticky="header"
-          class="min-w-full text-sm"
-        >
-          <template #metin-cell="{ row }">
-            <GimdesSearchHighlight :text="row.original.metin" :query="q" />
-          </template>
-        </UTable>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <p class="text-sm font-semibold" :class="outside ? 'text-red-700' : 'text-highlighted'">
+          {{ outside ? 'Bu ürünler sertifika kapsamı dışında' : 'Sertifika kapsamında eşleşenler' }}
+        </p>
+        <UInput
+          v-if="lines.length > 5"
+          v-model="filter"
+          icon="i-lucide-search"
+          placeholder="Listede ara"
+          aria-label="Eşleşen ürünlerde ara"
+          class="w-full sm:w-64"
+        />
       </div>
+      <GimdesScopeList :lines="visible" :outside="outside" :inactive="getCertAlertKind(cert) !== null" :query="q" />
+      <p v-if="!visible.length" class="text-muted text-sm">
+        “{{ filter }}” bu listede yok.
+      </p>
     </template>
     <p v-else class="text-muted text-sm">
       Aranan metin kapsam satırlarında listelenmiyor; detay sayfasından tam listeye bakabilirsiniz.

@@ -1,14 +1,52 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
-@layer components {
-  .gimdes-surface {
-    @apply rounded-2xl border border-default/80 bg-default/90 shadow-sm ring-1 ring-black/5 backdrop-blur-[2px] dark:bg-default/85 dark:ring-white/10;
-  }
+/*
+ * Tasarım yönü: sakin bir belge kaydı. Zemin ve yüzeyler nötr; yeşil, sarı ve
+ * kırmızı yalnızca sertifika durumunu (ve birincil eylemi) anlatır.
+ */
+@theme {
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink-900: #0c2a1e;
+  --color-ink-800: #123a2a;
+  --color-ink-700: #1b4c38;
+  --color-ink-100: #cfe3d7;
+  --color-paper: #f4f7f5;
+  --color-line: #dde5e0;
+}
+
+:root {
+  --ui-primary: #0a7038;
+  --ui-text: #2b3a33;
+  --ui-text-muted: #586a61;
+  --ui-text-highlighted: #10211a;
+  --ui-border: var(--color-line);
 }
 
 html {
   color-scheme: light;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--color-paper);
+}
+
+@layer components {
+  .gimdes-surface {
+    @apply rounded-xl border border-line bg-white;
+  }
+
+  /* Konteynerden taşıp ekran genişliğini kaplayan bant */
+  .gimdes-bleed {
+    margin-inline: calc(50% - 50vw);
+    padding-inline: calc(50vw - 50%);
+  }
+
+  .gimdes-focus {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
 }
 
 .gimdes-category-scroll {
@@ -16,25 +54,17 @@ html {
   scrollbar-color: var(--ui-border-accented) transparent;
 }
 
-.gimdes-category-scroll::-webkit-scrollbar {
-  width: 6px;
-}
-
-.gimdes-category-scroll::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.gimdes-category-scroll::-webkit-scrollbar-thumb {
-  background: var(--ui-border-accented);
-  border-radius: 999px;
-}
-
-.gimdes-category-scroll::-webkit-scrollbar-thumb:hover {
-  background: var(--ui-text-muted);
-}
-
 input[type='search']::-webkit-search-cancel-button,
 input[type='search']::-webkit-search-decoration {
   -webkit-appearance: none;
   appearance: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -215,3 +215,15 @@ export function productLinesForAccordion(q: string, cert: Certificate): string[]
 
   return []
 }
+
+/** Liste içi süzme: `tableGlobalFilterTr` ile aynı, Türkçe harf duyarlı parça eşleşmesi. */
+export function textIncludesTr(filter: string, text: string): boolean {
+  const search = norm(filter)
+  return !search || trLower(text).includes(search)
+}
+
+/** `productLinesForAccordion` satırları kapsam dışı listeden mi geldi. */
+export function isOutOfScopeMatch(q: string, cert: Certificate): boolean {
+  const plain = (rows?: string[]) => (rows ?? []).map(r => stripHtml(r).trim()).filter(Boolean).join(' ')
+  return !textMatchesQuery(q, plain(cert.in_scope_lines)) && textMatchesQuery(q, plain(cert.out_of_scope_lines))
+}

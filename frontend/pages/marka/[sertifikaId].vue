@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
 import type { Certificate } from '~/types/gimdes'
-import { certDetailPageShellClass, getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
+import { categoryNameTr, certStatusDisplay, formatCertDate, websiteHref } from '~/utils/certDisplay'
+import { getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
 import { certificateThumbSrc, listCertificateImages } from '~/utils/certImages'
-import { logoUrl } from '~/utils/logoUrl'
-import { stripHtml, tableGlobalFilterTr } from '~/utils/matchScope'
-
-type ScopeLineRow = { id: number; metin: string }
+import { stripHtml, textIncludesTr } from '~/utils/matchScope'
 
 const route = useRoute()
 const sertifikaId = computed(() => String(route.params.sertifikaId ?? ''))
@@ -38,9 +35,6 @@ const homeCrumbLabel = computed(() =>
 
 const cert = ref<Certificate | null>(null)
 const missing = ref(false)
-
-const rawLogoUrl = computed(() => logoUrl(cert.value?.MarkaLogosu ?? null))
-const { src: logo } = useCachedLogo(rawLogoUrl)
 
 const certImages = computed(() =>
   cert.value ? listCertificateImages(cert.value) : [],
@@ -177,27 +171,71 @@ onUnmounted(() => {
 
 const scopeFilter = ref('')
 
-const inScopeTableRows = computed<ScopeLineRow[]>(() =>
-  (cert.value?.in_scope_lines ?? []).map((raw, i) => ({
-    id: i,
-    metin: stripHtml(raw) || '—',
-  })),
-)
+function scopeGroup(raw: string[] | undefined) {
+  const all = (raw ?? []).map(line => stripHtml(line) || '—')
+  const visible = all.filter(line => textIncludesTr(scopeFilter.value, line))
+  const count = visible.length === all.length ? `${all.length} kayıt` : `${visible.length} / ${all.length} kayıt`
+  return { all, visible, count }
+}
 
-const outOfScopeTableRows = computed<ScopeLineRow[]>(() =>
-  (cert.value?.out_of_scope_lines ?? []).map((raw, i) => ({
-    id: i,
-    metin: stripHtml(raw) || '—',
-  })),
-)
+const inScope = computed(() => scopeGroup(cert.value?.in_scope_lines))
+const outOfScope = computed(() => scopeGroup(cert.value?.out_of_scope_lines))
 
-const scopeLineColumns: TableColumn<ScopeLineRow>[] = [
-  {
-    accessorKey: 'metin',
-    header: 'Ürün / kapsam',
-    meta: { class: { td: 'align-top' } },
-  },
-]
+const status = computed(() => cert.value ? certStatusDisplay(cert.value) : null)
+const statusClass = computed(() => ({
+  success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
+  warning: 'border-amber-300 bg-amber-100 text-amber-950',
+  error: 'border-red-700 bg-red-700 text-white',
+  neutral: 'border-line bg-white text-default',
+})[status.value?.tone ?? 'neutral'])
+
+const endDate = computed(() => formatCertDate(cert.value?.SertifikaBitisTarihi))
+
+const statusText = computed(() => {
+  const c = cert.value
+  if (!c)
+    return ''
+  if (alertKind.value === 'cancelled')
+    return stripHtml(c.IptalAciklamasi) || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'
+  if (alertKind.value === 'suspended')
+    return stripHtml(c.AskiyaAlmaAciklama) || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'
+  if (alertKind.value === 'expired')
+    return `${endDate.value ? `Bitiş tarihi: ${endDate.value}. ` : ''}Güncel durumu firmadan veya GİMDES’ten doğrulamanız önerilir.`
+  if (status.value?.tone === 'success')
+    return endDate.value ? `Bitiş tarihi: ${endDate.value}.` : ''
+  return endDate.value ? `Bitiş tarihi: ${endDate.value}. Güncel durum için GİMDES’e danışın.` : 'Güncel durum için GİMDES’e danışın.'
+})
+
+const statusTitle = computed(() => {
+  if (alertKind.value === 'cancelled')
+    return 'Bu sertifika iptal edilmiştir'
+  if (alertKind.value === 'suspended')
+    return 'Bu sertifika askıya alınmıştır'
+  if (alertKind.value === 'expired' && status.value?.label === 'Süresi geçmiş')
+    return 'Bu sertifikanın süresi dolmuştur'
+  return status.value?.tone === 'success' ? 'Sertifika geçerli' : status.value?.label ?? ''
+})
+
+const website = computed(() => websiteHref(cert.value?.FirmaWebSayfasi))
+const location = computed(() => [cert.value?.FirmaIl, cert.value?.FirmaUlke].filter(Boolean).join(' / '))
+const phoneHref = computed(() => {
+  const digits = (cert.value?.FirmaTelefon ?? '').replace(/[^\d+]/g, '')
+  return digits.length >= 7 ? `tel:${digits}` : null
+})
+
+const certFacts = computed(() => {
+  const c = cert.value
+  if (!c)
+    return []
+  return [
+    ['Sertifika no', c.SertifikaNo],
+    ['İlk alım', formatCertDate(c.IlkSertifikaAlimTarihi)],
+    ['Bitiş', endDate.value],
+    ['Güncelleme', formatCertDate(c.GuncellemeTarihi)],
+    ['Barkodlu ürün', c.BarkodluUrunSayisi],
+    ['İşletme kayıt no', c.IsletmeKayitNo],
+  ].map(([label, value]) => ({ label: String(label), value: value === null || value === undefined || value === '' ? 'Belirtilmemiş' : String(value) }))
+})
 
 const alertKind = computed(() => {
   if (!cert.value)
@@ -209,22 +247,6 @@ const showHistoricalSuspensionNote = computed(() => {
   if (!cert.value)
     return false
   return hasHistoricalSuspensionNote(cert.value)
-})
-
-const pageShellClass = computed(() => {
-  if (!cert.value || missing.value)
-    return ''
-  return certDetailPageShellClass(alertKind.value)
-})
-
-const scopeInAccent = computed(() => {
-  const k = alertKind.value
-  return k === 'cancelled' || k === 'suspended' || k === 'expired' ? 'red' : 'emerald'
-})
-
-const markaSectionAccent = computed(() => {
-  const k = alertKind.value
-  return k === 'cancelled' || k === 'suspended' || k === 'expired' ? 'red' : 'primary'
 })
 
 onMounted(() => {
@@ -244,44 +266,17 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="mx-auto max-w-3xl space-y-6" :class="pageShellClass">
-    <template v-if="cert && !missing">
-      <UAlert
-        v-if="alertKind === 'cancelled'"
-        color="error"
-        variant="subtle"
-        title="Bu sertifika iptal edilmiştir."
-        :description="cert.IptalAciklamasi?.trim() || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'"
-      />
-      <UAlert
-        v-else-if="alertKind === 'suspended'"
-        color="error"
-        variant="subtle"
-        title="Bu sertifika askıya alınmıştır."
-        :description="cert.AskiyaAlmaAciklama?.trim() || cert.Durum?.trim() || 'Geçerli helal sertifikası olarak kullanılmamalıdır.'"
-      />
-      <UAlert
-        v-else-if="alertKind === 'expired'"
-        color="warning"
-        variant="subtle"
-        title="Bu sertifikanın süresi dolmuştur."
-        description="Bitiş tarihi geçmiş; güncel durum için firmayı doğrulamanız önerilir."
-      />
-      <UAlert
-        v-else-if="showHistoricalSuspensionNote"
-        color="neutral"
-        variant="subtle"
-        title="Geçmiş askı kaydı"
-        :description="cert.AskiyaAlmaAciklama?.trim() || ''"
-      />
-    </template>
+  <div class="mx-auto max-w-6xl pt-16">
+    <GimdesSiteHeader>
+      <UButton to="/arama" icon="i-lucide-search" label="Ürün ara" color="neutral" variant="outline" size="lg" />
+    </GimdesSiteHeader>
 
     <UBreadcrumb
       :items="[
         { label: homeCrumbLabel, to: homeTo },
-        { label: 'Marka' },
+        { label: cert?.MarkaAdi || 'Marka' },
       ]"
-      class="mb-2"
+      class="mb-4"
     />
 
     <UAlert
@@ -292,209 +287,154 @@ onMounted(() => {
       description="Lütfen ana sayfadan tekrar bir marka seçin."
     >
       <template #actions>
-        <UButton :to="homeTo" label="Ana sayfa" size="sm" />
+        <UButton :to="homeTo" :label="homeCrumbLabel" size="sm" />
       </template>
     </UAlert>
 
     <template v-else-if="cert">
-      <GimdesDetailSection title="Marka" :accent="markaSectionAccent">
-        <div class="flex flex-col gap-4 sm:flex-row sm:items-start">
-          <div
-            class="border-default flex size-24 shrink-0 items-center justify-center rounded-2xl border bg-gradient-to-br from-elevated to-default p-2 shadow-inner ring-1 ring-inset ring-default/50"
-          >
-            <img
-              v-if="logo"
-              :src="logo"
-              :alt="cert.MarkaAdi"
-              class="max-h-full max-w-full object-contain"
-            >
-            <UIcon v-else name="i-lucide-award" class="text-muted size-12 shrink-0" />
-          </div>
-          <div>
-            <h1 class="text-highlighted text-2xl font-bold tracking-tight">
+      <div class="gimdes-surface mb-5 overflow-hidden lg:mb-6">
+        <div class="flex items-center gap-4 p-4 sm:gap-6 sm:p-6">
+          <GimdesBrandLogo :cert="cert" class="size-24 shrink-0 rounded-xl border border-line p-2 sm:size-32" />
+          <div class="min-w-0">
+            <h1 class="text-highlighted text-2xl leading-tight font-bold tracking-tight text-balance wrap-anywhere sm:text-3xl">
               {{ cert.MarkaAdi }}
             </h1>
-            <p class="text-muted mt-1 text-sm">
-              {{ cert.KategoriAdi }} · {{ cert.Durum }}
+            <p class="text-muted mt-1 wrap-anywhere">
+              {{ cert.FirmaAdi }}
             </p>
-            <p v-if="cert.SertifikaNo" class="mt-3 text-sm">
-              Sertifika no: <span class="text-highlighted font-medium">{{ cert.SertifikaNo }}</span>
+            <p class="text-muted mt-1 text-sm" :title="cert.KategoriAdi">
+              {{ categoryNameTr(cert.KategoriAdi) }}
             </p>
           </div>
         </div>
-      </GimdesDetailSection>
-
-
-      <UInput
-        v-if="cert.in_scope_lines?.length || cert.out_of_scope_lines?.length"
-        v-model="scopeFilter"
-        icon="i-lucide-search"
-        size="xl"
-        placeholder="Tabloda ara…"
-        aria-label="Kapsam ve kapsam dışı ürünlerde ara"
-        clearable
-        class="w-full"
-        :ui="{ base: 'min-h-14 rounded-xl text-base', leadingIcon: 'size-6' }"
-      />
-
-      <GimdesDetailSection
-        v-if="cert.in_scope_lines?.length"
-        title="Kapsam"
-        :accent="scopeInAccent"
-      >
-        <div class="space-y-3">
-          <div class="overflow-x-auto rounded-lg border border-default">
-            <UTable
-              v-model:global-filter="scopeFilter"
-              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
-              :data="inScopeTableRows"
-              :columns="scopeLineColumns"
-              :get-row-id="row => String(row.id)"
-              sticky="header"
-              class="min-w-full text-base"
-              :ui="{
-                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
-                th: 'text-base',
-              }"
-            />
+        <div
+          v-if="status"
+          class="flex items-start gap-3 border-t px-4 py-3.5 sm:px-6"
+          :class="statusClass"
+          :role="alertKind ? 'alert' : 'status'"
+        >
+          <UIcon :name="status.icon" class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+          <div class="min-w-0">
+            <p class="font-bold">
+              {{ statusTitle }}
+            </p>
+            <p v-if="statusText" class="whitespace-pre-wrap wrap-anywhere">
+              {{ statusText }}
+            </p>
           </div>
         </div>
-      </GimdesDetailSection>
+      </div>
 
-      <GimdesDetailSection
-        v-if="cert.out_of_scope_lines?.length"
-        title="Kapsam dışı"
-        accent="red"
-      >
-        <div class="space-y-3">
-          <div class="overflow-x-auto rounded-lg border border-default">
-            <UTable
-              v-model:global-filter="scopeFilter"
-              :global-filter-options="{ globalFilterFn: tableGlobalFilterTr }"
-              :data="outOfScopeTableRows"
-              :columns="scopeLineColumns"
-              :get-row-id="row => String(row.id)"
-              sticky="header"
-              class="min-w-full text-base"
-              :ui="{
-                td: 'text-base text-default whitespace-normal leading-relaxed font-medium',
-                th: 'text-base',
-              }"
-            />
-          </div>
-        </div>
-      </GimdesDetailSection>
-
-      <GimdesDetailSection title="Firma" accent="sky">
-        <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[8rem_1fr] sm:gap-x-4">
-          <dt class="text-muted">
-            Ünvan
-          </dt>
-          <dd>{{ cert.FirmaAdi }}</dd>
-          <dt class="text-muted">
-            Adres
-          </dt>
-          <dd>{{ cert.FirmaAdresi }}</dd>
-          <dt class="text-muted">
-            İl / ülke
-          </dt>
-          <dd>{{ cert.FirmaIl }} / {{ cert.FirmaUlke }}</dd>
-          <dt class="text-muted">
-            Telefon
-          </dt>
-          <dd>{{ cert.FirmaTelefon }}</dd>
-          <dt class="text-muted">
-            E-posta
-          </dt>
-          <dd>{{ cert.FirmaIletisimEmail }}</dd>
-          <dt class="text-muted">
-            Web
-          </dt>
-          <dd>
-            <a
-              v-if="cert.FirmaWebSayfasi"
-              :href="cert.FirmaWebSayfasi"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="text-primary hover:underline"
-            >{{ cert.FirmaWebSayfasi }}</a>
-            <span v-else>—</span>
-          </dd>
-          <dt class="text-muted">
-            İşletme kayıt no
-          </dt>
-          <dd>{{ cert.IsletmeKayitNo || '—' }}</dd>
-        </dl>
-      </GimdesDetailSection>
-
-      <GimdesDetailSection title="Sertifika" accent="violet">
-        <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-[8rem_1fr] sm:gap-x-4">
-          <dt class="text-muted">
-            İlk alım
-          </dt>
-          <dd>{{ cert.IlkSertifikaAlimTarihi }}</dd>
-          <dt class="text-muted">
-            Bitiş
-          </dt>
-          <dd>{{ cert.SertifikaBitisTarihi }}</dd>
-          <dt class="text-muted">
-            Güncelleme
-          </dt>
-          <dd>{{ cert.GuncellemeTarihi }}</dd>
-          <dt class="text-muted">
-            Barkodlu ürün
-          </dt>
-          <dd>{{ cert.BarkodluUrunSayisi }}</dd>
-          <template v-if="cert.IptalAciklamasi?.trim()">
-            <dt class="text-muted">
-              İptal açıklaması
-            </dt>
-            <dd class="whitespace-pre-wrap text-red-600 dark:text-red-400">
-              {{ cert.IptalAciklamasi.trim() }}
-            </dd>
-          </template>
-          <template v-if="cert.AskiyaAlmaAciklama?.trim() && alertKind === 'suspended'">
-            <dt class="text-muted">
-              Askı açıklaması
-            </dt>
-            <dd class="whitespace-pre-wrap text-red-600 dark:text-red-400">
-              {{ cert.AskiyaAlmaAciklama.trim() }}
-            </dd>
-          </template>
-          <template v-else-if="showHistoricalSuspensionNote">
-            <dt class="text-muted">
-              Geçmiş askı kaydı
-            </dt>
-            <dd class="whitespace-pre-wrap text-muted">
-              {{ cert.AskiyaAlmaAciklama?.trim() }}
-            </dd>
-          </template>
-        </dl>
-      </GimdesDetailSection>
-
-      <GimdesDetailSection
-        v-if="certImages.length"
-        title="Sertifika resimleri"
-        accent="amber"
-      >
-        <div class="flex flex-wrap gap-2">
-          <button
-            v-for="(img, idx) in certImages"
-            :key="`${img.filename}-${idx}`"
-            type="button"
-            class="border-default size-24 shrink-0 overflow-hidden rounded-lg border bg-default/20 ring-default/40 transition hover:opacity-90 focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2"
-            @click="openCertLightbox(idx)"
+      <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-6">
+        <div class="min-w-0 space-y-4">
+          <UInput
+            v-if="inScope.all.length || outOfScope.all.length"
+            v-model="scopeFilter"
+            icon="i-lucide-search"
+            size="xl"
+            placeholder="Bu sertifikada ürün ara"
+            aria-label="Kapsam ve kapsam dışı ürünlerde ara"
+            class="sticky top-[calc(4.5rem+env(safe-area-inset-top))] z-10 w-full"
+            :ui="{ base: 'h-12 rounded-lg bg-white text-base', trailing: 'pe-1.5' }"
           >
-            <img
-              :src="certificateThumbSrc(idx)"
-              :alt="cert.MarkaAdi"
-              class="size-full object-cover"
-              loading="lazy"
-            />
-          </button>
-        </div>
-      </GimdesDetailSection>
+            <template v-if="scopeFilter" #trailing>
+              <UButton icon="i-lucide-x" color="neutral" variant="ghost" aria-label="Ürün aramasını temizle" @click="scopeFilter = ''" />
+            </template>
+          </UInput>
 
+          <GimdesDetailSection v-if="inScope.all.length" title="Kapsamdaki ürünler" :count="inScope.count">
+            <p v-if="alertKind" class="text-sm font-semibold text-red-700">
+              Sertifika geçerli olmadığı için bu liste güncel onay anlamına gelmez.
+            </p>
+            <GimdesScopeList :lines="inScope.visible" :inactive="alertKind !== null" />
+            <p v-if="!inScope.visible.length" class="text-muted py-3">
+              “{{ scopeFilter }}” kapsamda yok.
+            </p>
+          </GimdesDetailSection>
+
+          <GimdesDetailSection v-if="outOfScope.all.length" title="Kapsam dışı ürünler" :count="outOfScope.count">
+            <GimdesScopeList :lines="outOfScope.visible" outside />
+            <p v-if="!outOfScope.visible.length" class="text-muted py-3">
+              “{{ scopeFilter }}” kapsam dışı listesinde yok.
+            </p>
+          </GimdesDetailSection>
+
+          <p v-if="!inScope.all.length && !outOfScope.all.length" class="gimdes-surface text-muted p-5">
+            Bu kayıtta ürün kapsamı belirtilmemiş.
+          </p>
+        </div>
+
+        <div class="min-w-0 space-y-4">
+          <GimdesDetailSection v-if="certImages.length" title="Sertifika belgesi" :count="`${certImages.length} görsel`">
+            <div class="flex flex-wrap gap-2 pt-1">
+              <button
+                v-for="(img, idx) in certImages"
+                :key="`${img.filename}-${idx}`"
+                type="button"
+                class="gimdes-focus h-28 w-20 shrink-0 cursor-zoom-in overflow-hidden rounded-lg border border-line transition-colors hover:border-primary"
+                :aria-label="`${idx + 1}. sertifika görselini büyüt`"
+                @click="openCertLightbox(idx)"
+              >
+                <img
+                  :src="certificateThumbSrc(idx)"
+                  alt=""
+                  class="size-full object-cover"
+                  loading="lazy"
+                >
+              </button>
+            </div>
+          </GimdesDetailSection>
+
+          <GimdesDetailSection title="Sertifika bilgileri">
+            <dl class="divide-y divide-line">
+              <div v-for="fact in certFacts" :key="fact.label" class="flex justify-between gap-4 py-2.5">
+                <dt class="text-muted shrink-0">
+                  {{ fact.label }}
+                </dt>
+                <dd class="min-w-0 text-right font-semibold tabular-nums wrap-anywhere" :class="fact.value === 'Belirtilmemiş' ? 'text-muted font-normal' : 'text-highlighted'">
+                  {{ fact.value }}
+                </dd>
+              </div>
+            </dl>
+            <div v-if="showHistoricalSuspensionNote && stripHtml(cert.AskiyaAlmaAciklama)" class="mt-3 rounded-lg bg-paper p-3 text-sm">
+              <p class="font-semibold">
+                Geçmiş askı kaydı
+              </p>
+              <p class="text-muted mt-1 whitespace-pre-wrap wrap-anywhere">
+                {{ stripHtml(cert.AskiyaAlmaAciklama) }}
+              </p>
+            </div>
+          </GimdesDetailSection>
+
+          <GimdesDetailSection title="Firma">
+            <p class="text-highlighted font-semibold wrap-anywhere">
+              {{ cert.FirmaAdi }}
+            </p>
+            <p v-if="cert.FirmaAdresi" class="text-muted mt-1 wrap-anywhere">
+              {{ cert.FirmaAdresi }}
+            </p>
+            <p v-if="location" class="text-muted">
+              {{ location }}
+            </p>
+            <ul class="mt-3 space-y-1">
+              <li v-if="cert.FirmaTelefon" class="flex items-center gap-3 py-1">
+                <UIcon name="i-lucide-phone" class="text-muted size-4 shrink-0" aria-label="Telefon" />
+                <a v-if="phoneHref" :href="phoneHref" class="gimdes-focus text-primary hover:underline">{{ cert.FirmaTelefon }}</a>
+                <span v-else>{{ cert.FirmaTelefon }}</span>
+              </li>
+              <li v-if="cert.FirmaIletisimEmail" class="flex items-center gap-3 py-1">
+                <UIcon name="i-lucide-mail" class="text-muted size-4 shrink-0" aria-label="E-posta" />
+                <a :href="`mailto:${cert.FirmaIletisimEmail}`" class="gimdes-focus text-primary min-w-0 wrap-anywhere hover:underline">{{ cert.FirmaIletisimEmail }}</a>
+              </li>
+              <li v-if="cert.FirmaWebSayfasi" class="flex items-center gap-3 py-1">
+                <UIcon name="i-lucide-globe" class="text-muted size-4 shrink-0" aria-label="Web sitesi" />
+                <a v-if="website" :href="website" target="_blank" rel="noopener noreferrer" class="gimdes-focus text-primary min-w-0 wrap-anywhere hover:underline">{{ cert.FirmaWebSayfasi }}</a>
+                <span v-else class="min-w-0 wrap-anywhere">{{ cert.FirmaWebSayfasi }}</span>
+              </li>
+            </ul>
+          </GimdesDetailSection>
+        </div>
+      </div>
     </template>
   </div>
 
