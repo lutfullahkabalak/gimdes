@@ -197,7 +197,7 @@ const showHint = computed(() =>
       </div>
     </GimdesSiteHeader>
 
-    <div class="mb-5">
+    <div class="animate-rise mb-5">
       <UBreadcrumb
         :items="[
           { label: 'Ana sayfa', to: '/' },
@@ -234,7 +234,7 @@ const showHint = computed(() =>
       :actions="[{ label: 'Tekrar dene', color: 'error', variant: 'soft', onClick: () => { executeSearch(searchQ.trim()) } }]"
     />
 
-    <div v-if="noResults" class="gimdes-surface flex flex-col items-center gap-2 px-4 py-14 text-center">
+    <div v-if="noResults" class="animate-rise gimdes-surface flex flex-col items-center gap-2 px-4 py-14 text-center">
       <UIcon name="i-lucide-search-x" class="text-muted size-9" />
       <p class="text-highlighted text-lg font-bold">
         Sonuç bulunamadı
@@ -244,7 +244,7 @@ const showHint = computed(() =>
       </p>
     </div>
 
-    <div v-if="searchLoading && !searchResults.length" class="gimdes-surface divide-y divide-line">
+    <div v-if="searchLoading && !searchResults.length" class="animate-appear gimdes-surface divide-y divide-line">
       <div v-for="n in 6" :key="n" class="flex items-center gap-4 p-4">
         <USkeleton class="size-14 shrink-0 rounded-lg" />
         <div class="flex-1 space-y-2">
@@ -256,7 +256,7 @@ const showHint = computed(() =>
 
     <div
       v-if="searchResults.length"
-      class="gimdes-surface divide-y divide-line overflow-hidden transition-opacity"
+      class="gimdes-surface animate-rise divide-y divide-line overflow-hidden transition-opacity duration-300"
       :class="{ 'opacity-60': searchLoading }"
     >
       <template v-for="cert in searchResults" :key="cert.SertifikaId">

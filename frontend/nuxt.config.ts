@@ -2,6 +2,9 @@ export default defineNuxtConfig({
   compatibilityDate: '2026-04-01',
   modules: ['@nuxt/ui'],
   css: ['~/assets/css/main.css'],
+  experimental: {
+    viewTransition: true,
+  },
   app: {
     head: {
       htmlAttrs: {

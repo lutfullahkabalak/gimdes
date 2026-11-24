@@ -27,7 +27,7 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
     :unmount-on-hide="false"
     @update:open="emit('update:open', $event)"
   >
-    <div class="relative flex flex-wrap items-center gap-3 px-3 py-3 transition-colors hover:bg-paper sm:flex-nowrap sm:gap-4 sm:px-4">
+    <div class="relative flex flex-wrap items-center gap-3 px-3 py-3 transition-colors duration-300 hover:bg-paper sm:flex-nowrap sm:gap-4 sm:px-4">
       <button
         type="button"
         class="absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
@@ -47,7 +47,7 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
           {{ categoryNameTr(cert.KategoriAdi) }} · {{ cert.FirmaAdi }}
         </p>
         <p v-if="matchCount" class="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold" :class="outside ? 'text-red-700' : 'text-primary'">
-          <UIcon name="i-lucide-chevron-down" class="size-4 transition-transform" :class="{ 'rotate-180': open }" aria-hidden="true" />
+          <UIcon name="i-lucide-chevron-down" class="size-4 transition-transform duration-300 ease-soft" :class="{ 'rotate-180': open }" aria-hidden="true" />
           {{ outside ? `${matchCount} eşleşme, kapsam dışında` : `Kapsamda ${matchCount} eşleşme` }}
         </p>
       </div>
@@ -57,11 +57,11 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
         variant="outline"
         size="lg"
         trailing-icon="i-lucide-chevron-right"
-        class="relative shrink-0 max-sm:w-full max-sm:justify-center"
+        class="gimdes-press relative shrink-0 max-sm:w-full max-sm:justify-center"
         @click.stop="emit('detail')"
       />
     </div>
-    <CollapsibleContent class="overflow-hidden data-[state=closed]:animate-[collapsible-up_200ms_ease-out] data-[state=open]:animate-[collapsible-down_200ms_ease-out]">
+    <CollapsibleContent class="overflow-hidden data-[state=closed]:animate-[collapsible-up_260ms_var(--ease-soft)] data-[state=open]:animate-[collapsible-down_360ms_var(--ease-soft)]">
       <slot />
     </CollapsibleContent>
   </CollapsibleRoot>

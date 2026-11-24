@@ -292,7 +292,7 @@ onMounted(() => {
     </UAlert>
 
     <template v-else-if="cert">
-      <div class="gimdes-surface mb-5 overflow-hidden lg:mb-6">
+      <div class="animate-rise gimdes-surface mb-5 overflow-hidden lg:mb-6">
         <div class="flex items-center gap-4 p-4 sm:gap-6 sm:p-6">
           <GimdesBrandLogo :cert="cert" class="size-24 shrink-0 rounded-xl border border-line p-2 sm:size-32" />
           <div class="min-w-0">
@@ -326,7 +326,7 @@ onMounted(() => {
       </div>
 
       <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_21rem] lg:gap-6">
-        <div class="min-w-0 space-y-4">
+        <div class="animate-appear min-w-0 space-y-4 [animation-delay:80ms]">
           <UInput
             v-if="inScope.all.length || outOfScope.all.length"
             v-model="scopeFilter"
@@ -364,14 +364,14 @@ onMounted(() => {
           </p>
         </div>
 
-        <div class="min-w-0 space-y-4">
+        <div class="animate-rise min-w-0 space-y-4 [animation-delay:140ms]">
           <GimdesDetailSection v-if="certImages.length" title="Sertifika belgesi" :count="`${certImages.length} görsel`">
             <div class="flex flex-wrap gap-2 pt-1">
               <button
                 v-for="(img, idx) in certImages"
                 :key="`${img.filename}-${idx}`"
                 type="button"
-                class="gimdes-focus h-28 w-20 shrink-0 cursor-zoom-in overflow-hidden rounded-lg border border-line transition-colors hover:border-primary"
+                class="gimdes-focus h-28 w-20 shrink-0 gimdes-press cursor-zoom-in overflow-hidden rounded-lg border border-line hover:-translate-y-0.5 hover:border-primary hover:shadow-lg"
                 :aria-label="`${idx + 1}. sertifika görselini büyüt`"
                 @click="openCertLightbox(idx)"
               >
@@ -439,97 +439,100 @@ onMounted(() => {
   </div>
 
   <Teleport to="body">
-    <div
-      v-if="lightboxUrl"
-      class="fixed inset-0 z-[100]"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Sertifika görseli"
-      tabindex="-1"
-      @wheel.prevent="onCertLightboxWheel"
-    >
-      <!-- Tam ekran tıklama alanı: üst katman pointer-events-none olduğu için boş alan tıkları buraya düşer -->
+    <Transition name="lightbox">
       <div
-        class="absolute inset-0 bg-black/80"
-        aria-hidden="true"
-        @click="closeCertLightbox"
-      />
-
-      <div class="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
-        <button
-          type="button"
-          class="pointer-events-auto absolute right-3 top-3 z-20 flex size-11 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2"
-          aria-label="Kapat"
-          @click="closeCertLightbox"
-        >
-          <UIcon name="i-lucide-x" class="size-6" />
-        </button>
-
-        <button
-          v-if="lightboxHasMultiple"
-          type="button"
-          class="pointer-events-auto absolute left-2 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2 sm:left-4"
-          aria-label="Önceki görsel"
-          @click="stepCertLightbox(-1)"
-        >
-          <UIcon name="i-lucide-chevron-left" class="size-7" />
-        </button>
-        <button
-          v-if="lightboxHasMultiple"
-          type="button"
-          class="pointer-events-auto absolute right-2 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2 sm:right-4"
-          aria-label="Sonraki görsel"
-          @click="stepCertLightbox(1)"
-        >
-          <UIcon name="i-lucide-chevron-right" class="size-7" />
-        </button>
-
+        v-if="lightboxUrl"
+        class="fixed inset-0 z-[100]"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Sertifika görseli"
+        tabindex="-1"
+        @wheel.prevent="onCertLightboxWheel"
+      >
+        <!-- Tam ekran tıklama alanı: üst katman pointer-events-none olduğu için boş alan tıkları buraya düşer -->
         <div
-          class="pointer-events-auto relative flex h-[min(88vh,900px)] w-[min(96vw,1100px)] max-w-full items-center justify-center overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10"
+          class="absolute inset-0 bg-black/80"
+          aria-hidden="true"
           @click="closeCertLightbox"
-        >
-          <img
-            :src="lightboxUrl"
-            :alt="cert?.MarkaAdi ?? 'Sertifika görseli'"
-            :style="{ transform: `scale(${lightboxZoom})` }"
-            class="max-h-full max-w-full origin-center object-contain transition-transform duration-200 ease-out"
-            @click.stop
-          />
-        </div>
+        />
 
-        <div
-          class="pointer-events-auto absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/20 bg-black/55 px-2 py-1.5 text-white shadow-lg backdrop-blur-md sm:gap-2 sm:px-3"
-        >
+        <div class="pointer-events-none absolute inset-0 flex items-center justify-center p-4">
           <button
             type="button"
-            class="flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
-            aria-label="Küçült"
-            @click="bumpLightboxZoom(-0.25)"
+            class="pointer-events-auto absolute right-3 top-3 z-20 flex size-11 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2"
+            aria-label="Kapat"
+            @click="closeCertLightbox"
           >
-            <UIcon name="i-lucide-minus" class="size-5" />
+            <UIcon name="i-lucide-x" class="size-6" />
           </button>
-          <span class="min-w-[3.25rem] text-center text-xs font-medium tabular-nums sm:text-sm">
-            {{ Math.round(lightboxZoom * 100) }}%
-          </span>
+
           <button
+            v-if="lightboxHasMultiple"
             type="button"
-            class="flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
-            aria-label="Büyült"
-            @click="bumpLightboxZoom(0.25)"
+            class="pointer-events-auto absolute left-2 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2 sm:left-4"
+            aria-label="Önceki görsel"
+            @click="stepCertLightbox(-1)"
           >
-            <UIcon name="i-lucide-plus" class="size-5" />
+            <UIcon name="i-lucide-chevron-left" class="size-7" />
           </button>
           <button
+            v-if="lightboxHasMultiple"
             type="button"
-            class="ml-1 flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none sm:ml-2"
-            aria-label="Zoom sıfırla"
-            title="Sıfırla (0)"
-            @click="resetLightboxZoom"
+            class="pointer-events-auto absolute right-2 top-1/2 z-20 flex size-12 -translate-y-1/2 items-center justify-center rounded-full bg-default/90 text-default shadow-lg ring-1 ring-default/60 backdrop-blur-sm transition hover:bg-elevated focus-visible:ring-primary focus-visible:outline-none focus-visible:ring-2 sm:right-4"
+            aria-label="Sonraki görsel"
+            @click="stepCertLightbox(1)"
           >
-            <UIcon name="i-lucide-rotate-ccw" class="size-4" />
+            <UIcon name="i-lucide-chevron-right" class="size-7" />
           </button>
+
+          <div
+            class="lightbox-frame pointer-events-auto relative flex h-[min(88vh,900px)] w-[min(96vw,1100px)] max-w-full items-center justify-center overflow-hidden rounded-xl shadow-2xl ring-1 ring-white/10"
+            @click="closeCertLightbox"
+          >
+            <img
+              :key="lightboxUrl"
+              :src="lightboxUrl"
+              :alt="cert?.MarkaAdi ?? 'Sertifika görseli'"
+              :style="{ transform: `scale(${lightboxZoom})` }"
+              class="max-h-full animate-appear max-w-full origin-center object-contain transition-transform duration-300 ease-soft"
+              @click.stop
+            />
+          </div>
+
+          <div
+            class="pointer-events-auto absolute bottom-4 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/20 bg-black/55 px-2 py-1.5 text-white shadow-lg backdrop-blur-md sm:gap-2 sm:px-3"
+          >
+            <button
+              type="button"
+              class="flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
+              aria-label="Küçült"
+              @click="bumpLightboxZoom(-0.25)"
+            >
+              <UIcon name="i-lucide-minus" class="size-5" />
+            </button>
+            <span class="min-w-[3.25rem] text-center text-xs font-medium tabular-nums sm:text-sm">
+              {{ Math.round(lightboxZoom * 100) }}%
+            </span>
+            <button
+              type="button"
+              class="flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none"
+              aria-label="Büyült"
+              @click="bumpLightboxZoom(0.25)"
+            >
+              <UIcon name="i-lucide-plus" class="size-5" />
+            </button>
+            <button
+              type="button"
+              class="ml-1 flex size-9 items-center justify-center rounded-full transition hover:bg-white/15 focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:outline-none sm:ml-2"
+              aria-label="Zoom sıfırla"
+              title="Sıfırla (0)"
+              @click="resetLightboxZoom"
+            >
+              <UIcon name="i-lucide-rotate-ccw" class="size-4" />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Transition>
   </Teleport>
 </template>

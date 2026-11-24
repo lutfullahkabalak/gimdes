@@ -8,6 +8,18 @@
 @theme {
   --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
 
+  /* Hareket: her yerde aynı yumuşak çıkış eğrisi */
+  --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-rise: gimdes-rise 0.5s var(--ease-soft) backwards;
+  --animate-appear: gimdes-appear 0.35s ease-out backwards;
+
+  @keyframes gimdes-rise {
+    from { opacity: 0; transform: translateY(14px); }
+  }
+  @keyframes gimdes-appear {
+    from { opacity: 0; }
+  }
+
   --color-ink-900: #0c2a1e;
   --color-ink-800: #123a2a;
   --color-ink-700: #1b4c38;
@@ -44,6 +56,16 @@ body {
     padding-inline: calc(50vw - 50%);
   }
 
+  /* İlk öğeler sırayla belirir; --i 11'de sabitlenir, uzun listede bekleme olmaz */
+  .gimdes-stagger {
+    animation: var(--animate-rise);
+    animation-delay: calc(var(--i, 0) * 35ms);
+  }
+
+  .gimdes-press {
+    @apply transition-[transform,background-color,border-color,box-shadow,color,opacity] duration-300 ease-soft active:scale-[0.97] active:duration-100;
+  }
+
   .gimdes-focus {
     @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
@@ -60,11 +82,59 @@ input[type='search']::-webkit-search-decoration {
   appearance: none;
 }
 
+/* Sayfa geçişi: içerik yumuşakça değişir, üst çubuk yerinde kalır */
+.gimdes-header {
+  view-transition-name: gimdes-header;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.28s;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(root) {
+  animation: gimdes-vt-out 0.16s ease-in both;
+}
+
+::view-transition-new(root) {
+  animation: gimdes-vt-in 0.3s ease-out both;
+}
+
+@keyframes gimdes-vt-out {
+  to { opacity: 0; }
+}
+
+@keyframes gimdes-vt-in {
+  from { opacity: 0; }
+}
+
+/* Vue geçişleri */
+.lightbox-enter-active,
+.lightbox-leave-active {
+  transition: opacity 0.25s ease-out;
+}
+
+.lightbox-enter-active .lightbox-frame,
+.lightbox-leave-active .lightbox-frame {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lightbox-enter-from,
+.lightbox-leave-to {
+  opacity: 0;
+}
+
+.lightbox-enter-from .lightbox-frame,
+.lightbox-leave-to .lightbox-frame {
+  transform: scale(0.94);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
   }
 }

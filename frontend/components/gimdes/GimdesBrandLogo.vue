@@ -17,7 +17,7 @@ const icon = computed(() => iconForCategory({ KategoriAdi: props.cert.KategoriAd
       v-if="src && !failed"
       :src="src"
       alt=""
-      class="max-h-full max-w-full object-contain"
+      class="animate-appear max-h-full max-w-full object-contain"
       @error="failed = true"
     >
     <UIcon v-else :name="icon" class="size-2/5 max-h-10 max-w-10 text-slate-300" aria-hidden="true" />

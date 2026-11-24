@@ -18,7 +18,7 @@ const categoriesLoading = useState('gimdes-home-categoriesLoading', () => true)
 
 const selectedHref = useState<string | null>('gimdes-home-selectedHref', () => null)
 const listCerts = useState<Certificate[]>('gimdes-home-listCerts', () => [])
-const listLoading = useState('gimdes-home-listLoading', () => false)
+const listLoading = useState('gimdes-home-listLoading', () => true)
 const listError = useState('gimdes-home-listError', () => '')
 
 const categoryId = useState('gimdes-home-categoryId', () => '__all__')
@@ -60,7 +60,10 @@ function chooseCategory(id: string) {
       return
     const { top } = el.getBoundingClientRect()
     if (top < 0 || top > window.innerHeight / 2)
-      el.scrollIntoView({ block: 'start' })
+      el.scrollIntoView({
+        block: 'start',
+        behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      })
   })
 }
 
@@ -247,6 +250,7 @@ onMounted(async () => {
       v-model="homeSearchDraft"
       :statuses="statusItems"
       :selected-id="categoryId"
+      :loading="categoriesLoading"
       @submit="goToSearchPage"
       @select="chooseCategory"
     />
@@ -273,13 +277,18 @@ onMounted(async () => {
               {{ listLoading ? 'Yükleniyor…' : `${listCerts.length} marka` }}
             </p>
           </div>
-          <div class="flex shrink-0 gap-1 rounded-lg border border-line bg-white p-1" role="group" aria-label="Marka görünümü">
+          <div class="relative flex shrink-0 gap-1 rounded-lg border border-line bg-white p-1" role="group" aria-label="Marka görünümü">
+            <span
+              class="absolute top-1 left-1 size-10 rounded-md bg-emerald-100 transition-transform duration-300 ease-soft"
+              :class="mobileBrandView === 'list' ? 'translate-x-11' : ''"
+              aria-hidden="true"
+            />
             <button
               v-for="view in ([['grid', 'Izgara görünümü', 'i-lucide-layout-grid'], ['list', 'Liste görünümü', 'i-lucide-list']] as const)"
               :key="view[0]"
               type="button"
-              class="gimdes-focus flex size-10 cursor-pointer items-center justify-center rounded-md transition-colors"
-              :class="mobileBrandView === view[0] ? 'bg-emerald-100 text-primary' : 'text-muted hover:bg-paper'"
+              class="gimdes-focus gimdes-press relative flex size-10 cursor-pointer items-center justify-center rounded-md"
+              :class="mobileBrandView === view[0] ? 'text-primary' : 'text-muted hover:text-highlighted'"
               :aria-label="view[1]"
               :aria-pressed="mobileBrandView === view[0]"
               @click="mobileBrandView = view[0]"
@@ -316,23 +325,27 @@ onMounted(async () => {
           class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 xl:grid-cols-4"
         >
           <GimdesBrandTile
-            v-for="cert in listCerts"
+            v-for="(cert, i) in listCerts"
             :key="cert.SertifikaId"
             :cert="cert"
+            class="gimdes-stagger"
+            :style="{ '--i': Math.min(i, 11) }"
             @select="goBrand"
           />
         </div>
 
-        <div v-else-if="listCerts.length" class="gimdes-surface divide-y divide-line overflow-hidden">
+        <div v-else-if="listCerts.length" class="animate-rise gimdes-surface divide-y divide-line overflow-hidden">
           <GimdesSearchResultRowSimple
-            v-for="cert in listCerts"
+            v-for="(cert, i) in listCerts"
             :key="cert.SertifikaId"
             :cert="cert"
+            class="gimdes-stagger"
+            :style="{ '--i': Math.min(i, 11) }"
             @select="goBrand"
           />
         </div>
 
-        <p v-else-if="!listError" class="text-muted py-12 text-center">
+        <p v-else-if="!listError" class="animate-appear text-muted py-12 text-center">
           Bu listede kayıt yok.
         </p>
       </section>

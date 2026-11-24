@@ -67,7 +67,7 @@ const groups = computed(() =>
             v-for="item in group.items"
             :key="item.id"
             type="button"
-            class="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-[0.9375rem] leading-snug transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary lg:min-h-10"
+            class="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-[0.9375rem] gimdes-press leading-snug focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary lg:min-h-10"
             :class="selectedId === item.id ? 'bg-emerald-100 font-semibold text-ink-900' : 'hover:bg-paper'"
             :aria-pressed="selectedId === item.id"
             :title="item.fullName"

@@ -26,6 +26,8 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 - Geçersiz sertifikanın kapsamında onay işareti yoktur. Kapsam dışı arama eşleşmesi kırmızı ve açık yazılır.
 - Renk ve yazı tipi belirteçleri `assets/css/main.css` içindedir (Hanken Grotesk, `@nuxt/fonts` derlemede indirir).
 
+- Hareket: `--ease-soft`, `animate-rise`, `animate-appear`, `gimdes-stagger`, `gimdes-press` (`main.css`). Sayfalar arası View Transitions açık. Yeni içerik, eskinin çıkış animasyonunu beklemez (`mode="out-in"` gizli sekmede içeriği takılı bırakmıştı). `animation-fill-mode: backwards` kullanılır; `both` hover dönüşümünü ezebilir.
+
 ## Yardımcılar
 
 | Dosya | Rol |

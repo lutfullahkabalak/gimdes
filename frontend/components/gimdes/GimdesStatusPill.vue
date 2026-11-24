@@ -13,7 +13,7 @@ const toneClass = computed(() => ({
 </script>
 
 <template>
-  <span class="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold" :class="toneClass">
+  <span class="inline-flex w-fit items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold whitespace-nowrap" :class="toneClass">
     <UIcon :name="status.icon" class="size-3.5 shrink-0" aria-hidden="true" />
     {{ status.label }}
   </span>
