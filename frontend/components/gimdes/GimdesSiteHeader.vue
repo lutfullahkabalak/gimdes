@@ -2,7 +2,10 @@
 import { gimdesBrandLogoUrl } from '~/utils/logoUrl'
 
 /** Üst çubuk sayfanın rengini alır. */
-withDefaults(defineProps<{ color?: string }>(), { color: '#1fd37e' })
+const props = withDefaults(defineProps<{ color?: string }>(), { color: '#1fd37e' })
+
+// Telefonun durum çubuğu da sayfanın rengini alır.
+useHead({ meta: [{ name: 'theme-color', content: () => props.color }] })
 
 const scrolled = ref(false)
 function onScroll() {
