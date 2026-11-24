@@ -20,7 +20,7 @@ defineEmits<{
     class="group flex w-full cursor-pointer items-center gap-3 px-3 py-4 text-left transition-colors duration-300 hover:bg-paper active:bg-line/60 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary sm:gap-4 sm:px-4"
     @click="$emit('select', cert)"
   >
-    <GimdesBrandLogo :cert="cert" class="size-16 shrink-0 rounded-2xl border border-line p-1.5" />
+    <GimdesBrandLogo :cert="cert" :data-brand="cert.SertifikaId" class="size-16 shrink-0 rounded-2xl border border-line p-1.5" />
     <span class="min-w-0 flex-1">
       <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
         <span class="text-highlighted text-lg font-extrabold wrap-anywhere transition-colors duration-300 group-hover:text-primary">

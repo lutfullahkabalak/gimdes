@@ -34,7 +34,7 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 - Geri dönülen ana sayfada belirme animasyonları oynamaz (`gimdes-still`) ve logolar bellekten ilk karede gelir (`useCachedLogo` açık blob adresleri). Aksi hâlde uçan logo yerine otururken beyaz bir an oluşuyordu.
 
 - PWA: `public/manifest.webmanifest`, ikonlar `public/icons/` (Codex ile üretildi; maskable sürümü geniş boşlukludur). iOS ana ekran ikonu yalnızca uygulama yeniden eklenince değişir.
-- iOS kenardan kaydırarak geri dönüşte görsel geçişi sistem yapar (`hasUAVisualTransition`); Nuxt View Transition'ı bilerek atlar. Üstüne logo uçuşu eklenirse sayfa yerine oturduktan sonra ikinci kez oynar.
+- iOS kenardan kaydırarak geri dönüşte görsel geçişi sistem yapar (`hasUAVisualTransition`); Nuxt View Transition'ı bilerek atlar. Üstüne logo uçuşu eklenirse sayfa yerine oturduktan sonra ikinci kez oynar. Bunun yerine `useBrandSettle` yalnızca View Transition oynamayan geri dönüşte son karta hafif oturma hareketi verir.
 
 ## Yardımcılar
 

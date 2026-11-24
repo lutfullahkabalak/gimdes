@@ -128,6 +128,7 @@ function storageKey(id: number) {
 }
 
 const activeBrand = useState<number | null>('gimdes-active-brand', () => null)
+useBrandSettle()
 
 async function goBrand(cert: Certificate) {
   activeBrand.value = cert.SertifikaId

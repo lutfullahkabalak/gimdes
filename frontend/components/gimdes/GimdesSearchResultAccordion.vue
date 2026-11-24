@@ -35,7 +35,7 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
         :aria-label="`${cert.MarkaAdi}: eşleşen ürünleri göster/gizle`"
         @click="emit('toggle')"
       />
-      <GimdesBrandLogo :cert="cert" class="pointer-events-none relative size-16 shrink-0 rounded-2xl border border-line p-1.5" />
+      <GimdesBrandLogo :cert="cert" :data-brand="cert.SertifikaId" class="pointer-events-none relative size-16 shrink-0 rounded-2xl border border-line p-1.5" />
       <div class="pointer-events-none relative min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span class="text-highlighted text-lg font-extrabold wrap-anywhere">

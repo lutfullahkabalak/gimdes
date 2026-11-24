@@ -19,6 +19,7 @@ const color = computed(() => invalid.value ? NO_COLOR : categoryColor(props.cert
 <template>
   <button
     type="button"
+    :data-brand="cert.SertifikaId"
     class="gimdes-focus gimdes-press group relative flex h-full w-full min-w-0 cursor-pointer flex-col rounded-[1.75rem] p-2 text-left text-ink-900 hover:-translate-y-1.5 hover:shadow-[0_22px_40px_-18px_rgb(6_38_26/0.5)]"
     :style="{ backgroundColor: color }"
     @click="$emit('select', cert)"
