@@ -55,54 +55,93 @@ async function resolveBlob(url: string): Promise<Blob | null> {
   }
 }
 
+/**
+ * Oturum boyunca açık tutulan blob adresleri. Sayfaya geri dönüldüğünde logo ilk
+ * karede hazır olur; adres her seferinde yeniden üretilseydi görsel boş başlardı.
+ */
+const MAX_OPEN_URLS = 400
+const openUrls = new Map<string, { url: string, users: number }>()
+
+function acquire(raw: string, blob?: Blob): string | null {
+  let entry = openUrls.get(raw)
+  if (!entry) {
+    if (!blob)
+      return null
+    entry = { url: URL.createObjectURL(blob), users: 0 }
+  }
+  else {
+    openUrls.delete(raw)
+  }
+  entry.users++
+  openUrls.set(raw, entry)
+  // En eski ve ekranda kullanılmayan adresleri bırak.
+  if (openUrls.size > MAX_OPEN_URLS) {
+    for (const [key, old] of openUrls) {
+      if (openUrls.size <= MAX_OPEN_URLS)
+        break
+      if (old.users <= 0) {
+        URL.revokeObjectURL(old.url)
+        openUrls.delete(key)
+      }
+    }
+  }
+  return entry.url
+}
+
+function release(raw: string) {
+  const entry = openUrls.get(raw)
+  if (entry)
+    entry.users--
+}
+
 export function useCachedLogo(rawUrl: MaybeRef<string | null>) {
   const src = ref<string | null>(null)
-  let objectUrl: string | null = null
+  /** Logo bellekten anında geldi; belirme animasyonu gerekmez. */
+  const instant = ref(false)
+  let held: string | null = null
   let lastRaw: string | null = null
 
-  function setSrc(next: string | null) {
-    src.value = next
-  }
-
-  function revoke() {
-    if (objectUrl) {
-      URL.revokeObjectURL(objectUrl)
-      objectUrl = null
+  function drop() {
+    if (held) {
+      release(held)
+      held = null
     }
   }
 
   async function update(nextRaw: string | null) {
     lastRaw = nextRaw
-    revoke()
+    drop()
 
-    if (!import.meta.client) {
-      setSrc(nextRaw)
+    if (!import.meta.client || !nextRaw) {
+      src.value = nextRaw
       return
     }
 
-    if (!nextRaw) {
-      setSrc(null)
+    const ready = acquire(nextRaw)
+    instant.value = ready !== null
+    if (ready) {
+      held = nextRaw
+      src.value = ready
       return
     }
 
     // Default to network URL immediately, then upgrade to cached blob if available.
-    setSrc(nextRaw)
+    src.value = nextRaw
 
     const blob = await resolveBlob(nextRaw)
     // If URL changed while awaiting, ignore.
-    if (lastRaw !== nextRaw)
-      return
-    if (!blob)
+    if (lastRaw !== nextRaw || !blob)
       return
 
     try {
-      objectUrl = URL.createObjectURL(blob)
-      setSrc(objectUrl)
+      const url = acquire(nextRaw, blob)
+      if (url) {
+        held = nextRaw
+        src.value = url
+      }
     }
     catch {
       // If createObjectURL fails, keep network URL
-      revoke()
-      setSrc(nextRaw)
     }
   }
 
@@ -116,9 +155,8 @@ export function useCachedLogo(rawUrl: MaybeRef<string | null>) {
 
   onUnmounted(() => {
     lastRaw = null
-    revoke()
+    drop()
   })
 
-  return { src }
+  return { src, instant }
 }
-

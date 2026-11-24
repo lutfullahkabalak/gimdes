@@ -93,6 +93,13 @@ body {
   font-variant-ligatures: none;
 }
 
+/* Geri dönülen sayfa zaten görülmüştür: belirme animasyonu baştan oynamaz. Aksi hâlde
+   uçan logo yerine otururken kartı saydam kalır ve beyaz bir an görünür. */
+.gimdes-still,
+.gimdes-still :is(.gimdes-stagger, .animate-rise, .animate-appear, .gimdes-words span) {
+  animation: none !important;
+}
+
 /* Başlık sözcükleri aşağıdan yerine oturur */
 .gimdes-words span {
   display: inline-block;

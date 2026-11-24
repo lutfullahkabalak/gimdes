@@ -30,6 +30,10 @@ const homeSearchDraft = useState('gimdes-home-searchDraft', () => '')
 /** İlk yüklemede kategori + liste çekildi; marka sayfasına gidip dönünce tekrar fetch yok. */
 const homeDataBootstrapped = useState('gimdes-home-bootstrapped', () => false)
 
+/** Sayfaya geri dönüldü; liste değişene kadar belirme animasyonları oynamaz. */
+const returning = homeDataBootstrapped.value
+const listStill = ref(returning)
+
 const categoryItems = computed<CategoryItem[]>(() => [
   { id: '__all__', name: 'Son güncellenenler', fullName: 'Tümü (son güncellenenler)', count: null, icon: 'i-lucide-history', group: 'recent' },
   ...categories.value.map(c => ({
@@ -144,6 +148,10 @@ function goToSearchPage() {
   router.push({ path: '/arama', query: { q } })
 }
 
+watch([categoryId, mobileBrandView], () => {
+  listStill.value = false
+})
+
 watch(categoryId, async (id) => {
   if (!categoryPickerReady.value)
     return
@@ -252,6 +260,7 @@ onMounted(async () => {
     </GimdesSiteHeader>
 
     <GimdesHomeSearchHero
+      :class="{ 'gimdes-still': returning }"
       v-model="homeSearchDraft"
       :statuses="statusItems"
       :selected-id="categoryId"
@@ -261,6 +270,7 @@ onMounted(async () => {
     />
 
     <GimdesCategoryShelf
+      :class="{ 'gimdes-still': returning }"
       :items="shelfItems"
       :selected-id="categoryId"
       :loading="categoriesLoading"
@@ -278,7 +288,7 @@ onMounted(async () => {
       :actions="[{ label: 'Tekrar dene', color: 'error', variant: 'soft', onClick: () => { loadCategories() } }]"
     />
 
-    <section ref="brandsSection" class="min-w-0 scroll-mt-24 pt-10 lg:pt-14">
+    <section ref="brandsSection" :class="{ 'gimdes-still': listStill }" class="min-w-0 scroll-mt-24 pt-10 lg:pt-14">
       <div class="mb-4 flex items-center justify-between gap-3">
         <div class="min-w-0" aria-live="polite">
           <h2 class="font-display text-highlighted text-3xl leading-none font-extrabold text-balance sm:text-5xl">

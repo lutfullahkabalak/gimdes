@@ -7,7 +7,7 @@ import { logoUrl } from '~/utils/logoUrl'
 
 const props = defineProps<{ cert: Certificate }>()
 const rawLogoUrl = computed(() => logoUrl(props.cert.MarkaLogosu))
-const { src } = useCachedLogo(rawLogoUrl)
+const { src, instant } = useCachedLogo(rawLogoUrl)
 const failed = ref(false)
 watch(src, () => { failed.value = false })
 const icon = computed(() => iconForCategory({ KategoriAdi: props.cert.KategoriAdi ?? '', Href: '' }))
@@ -28,8 +28,9 @@ const style = computed(() => ({
       v-if="showLogo"
       :src="src!"
       alt=""
-      class="animate-appear max-h-full max-w-full object-contain"
-      :class="invalid ? 'opacity-60 grayscale' : ''"
+      class="max-h-full max-w-full object-contain"
+      decoding="sync"
+      :class="[instant ? '' : 'animate-appear', invalid ? 'opacity-60 grayscale' : '']"
       @error="failed = true"
     >
     <UIcon v-else :name="icon" class="size-1/2 max-h-12 max-w-12 text-ink-900/60" aria-hidden="true" />

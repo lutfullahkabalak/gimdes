@@ -31,6 +31,8 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 
 - Hareket: `--ease-soft`, `animate-rise`, `animate-appear`, `gimdes-stagger`, `gimdes-press` (`main.css`). Sayfalar arası View Transitions açık. Yeni içerik, eskinin çıkış animasyonunu beklemez (`mode="out-in"` gizli sekmede içeriği takılı bırakmıştı). `animation-fill-mode: backwards` kullanılır; `both` hover dönüşümünü ezebilir.
 
+- Geri dönülen ana sayfada belirme animasyonları oynamaz (`gimdes-still`) ve logolar bellekten ilk karede gelir (`useCachedLogo` açık blob adresleri). Aksi hâlde uçan logo yerine otururken beyaz bir an oluşuyordu.
+
 ## Yardımcılar
 
 | Dosya | Rol |
