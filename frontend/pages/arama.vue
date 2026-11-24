@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import { SHOW_ROSETTE } from '~/utils/features'
 import { matchesProductAccordion } from '~/utils/matchScope'
 
 const DEBOUNCE_MS = 400
@@ -203,11 +204,12 @@ const showHint = computed(() =>
 
     <div class="gimdes-bleed relative -mt-px mb-6 overflow-hidden bg-brand text-ink-900">
       <GimdesRosette
+        v-if="SHOW_ROSETTE"
         :seed="searchQ.trim()"
         :colors="['#ffffff', '#ffe14d', '#ff5c8a', '#2c4bff']"
         class="gimdes-bloom absolute top-1/2 -right-32 w-80 -translate-y-1/2 sm:right-0 sm:w-[26rem]"
       />
-      <div class="animate-rise relative py-7 pr-36 sm:py-10 sm:pr-80">
+      <div class="animate-rise relative py-7 sm:py-10">
       <UBreadcrumb
         :items="[
           { label: 'Ana sayfa', to: '/' },

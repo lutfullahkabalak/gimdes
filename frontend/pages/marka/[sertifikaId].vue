@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
+import { SHOW_ROSETTE } from '~/utils/features'
 import { categoryNameTr, certStatusDisplay, formatCertDate, websiteHref } from '~/utils/certDisplay'
 import { getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
 import { categoryColor, NO_COLOR } from '~/utils/categoryPalette'
@@ -309,6 +310,7 @@ else
     <template v-else-if="cert">
       <section class="gimdes-bleed relative -mt-px mb-6 overflow-hidden text-ink-900 lg:mb-8" :style="{ backgroundColor: pageColor }">
         <GimdesRosette
+          v-if="SHOW_ROSETTE"
           :seed="`${cert.SertifikaNo || ''}-${cert.SertifikaId}`"
           :colors="rosetteColors"
           class="gimdes-bloom absolute -right-28 -bottom-32 w-96 opacity-80 lg:top-1/2 lg:right-0 lg:bottom-auto lg:w-[36rem] lg:-translate-y-1/2"
