@@ -383,16 +383,24 @@ else
               Sertifika geçerli olmadığı için bu liste güncel onay anlamına gelmez.
             </p>
             <GimdesScopeList :lines="inScope.visible" :inactive="alertKind !== null" />
-            <p v-if="!inScope.visible.length" class="text-muted py-3">
-              “{{ scopeFilter }}” kapsamda yok.
-            </p>
+            <Transition name="scope-row">
+              <div v-if="!inScope.visible.length" class="scope-note">
+                <p class="scope-row-inner text-muted">
+                  <span class="block py-3">“{{ scopeFilter }}” kapsamda yok.</span>
+                </p>
+              </div>
+            </Transition>
           </GimdesDetailSection>
 
           <GimdesDetailSection v-if="outOfScope.all.length" title="Kapsam dışı ürünler" :count="outOfScope.count">
             <GimdesScopeList :lines="outOfScope.visible" outside />
-            <p v-if="!outOfScope.visible.length" class="text-muted py-3">
-              “{{ scopeFilter }}” kapsam dışı listesinde yok.
-            </p>
+            <Transition name="scope-row">
+              <div v-if="!outOfScope.visible.length" class="scope-note">
+                <p class="scope-row-inner text-muted">
+                  <span class="block py-3">“{{ scopeFilter }}” kapsam dışı listesinde yok.</span>
+                </p>
+              </div>
+            </Transition>
           </GimdesDetailSection>
 
           <p v-if="!inScope.all.length && !outOfScope.all.length" class="gimdes-surface text-muted p-5">

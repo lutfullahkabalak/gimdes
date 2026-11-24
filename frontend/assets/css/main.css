@@ -181,6 +181,37 @@ input[type='search']::-webkit-search-decoration {
 }
 
 /* Vue geçişleri */
+/* Kapsam süzme: satır yer açarak belirir, yerini kapatarak kaybolur */
+.scope-row,
+.scope-note {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.scope-row-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.scope-row:last-child .scope-row-inner > * {
+  border-color: transparent;
+}
+
+.scope-row-enter-active,
+.scope-row-leave-active {
+  transition:
+    grid-template-rows 0.42s var(--ease-soft),
+    opacity 0.28s ease-out,
+    transform 0.42s var(--ease-soft);
+}
+
+.scope-row-enter-from,
+.scope-row-leave-to {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transform: translateX(-10px);
+}
+
 .lightbox-enter-active,
 .lightbox-leave-active {
   transition: opacity 0.25s ease-out;

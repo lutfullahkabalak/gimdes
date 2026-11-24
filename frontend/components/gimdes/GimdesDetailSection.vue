@@ -8,7 +8,7 @@ defineProps<{ title: string, count?: string }>()
       <h2 class="text-highlighted font-display text-2xl font-extrabold">
         {{ title }}
       </h2>
-      <span v-if="count" class="text-muted text-sm tabular-nums">{{ count }}</span>
+      <span v-if="count" :key="count" class="animate-appear text-muted text-sm tabular-nums">{{ count }}</span>
     </div>
     <slot />
   </section>
