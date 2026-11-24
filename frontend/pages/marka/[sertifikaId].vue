@@ -2,6 +2,7 @@
 import type { Certificate } from '~/types/gimdes'
 import { categoryNameTr, certStatusDisplay, formatCertDate, websiteHref } from '~/utils/certDisplay'
 import { getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
+import { categoryColor, NO_COLOR } from '~/utils/categoryPalette'
 import { certificateThumbSrc, listCertificateImages } from '~/utils/certImages'
 import { stripHtml, textIncludesTr } from '~/utils/matchScope'
 
@@ -183,10 +184,10 @@ const outOfScope = computed(() => scopeGroup(cert.value?.out_of_scope_lines))
 
 const status = computed(() => cert.value ? certStatusDisplay(cert.value) : null)
 const statusClass = computed(() => ({
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-900',
-  warning: 'border-amber-300 bg-amber-100 text-amber-950',
-  error: 'border-red-700 bg-red-700 text-white',
-  neutral: 'border-line bg-white text-default',
+  success: 'bg-[#c9f7df] text-ink-900',
+  warning: 'bg-[#8a4300] text-white',
+  error: 'bg-danger text-white',
+  neutral: 'bg-paper text-ink-900',
 })[status.value?.tone ?? 'neutral'])
 
 const endDate = computed(() => formatCertDate(cert.value?.SertifikaBitisTarihi))
@@ -249,35 +250,49 @@ const showHistoricalSuspensionNote = computed(() => {
   return hasHistoricalSuspensionNote(cert.value)
 })
 
-onMounted(() => {
+const pageColor = computed(() => {
+  if (!cert.value)
+    return '#1fd37e'
+  return alertKind.value ? NO_COLOR : categoryColor(cert.value.KategoriAdi)
+})
+const rosetteColors = computed(() => alertKind.value
+  ? ['#b9c1bd', '#a9b2ad', '#c8cfcb']
+  : ['#ffffff', '#06261a', '#ffffff', '#2c4bff'])
+
+const activeBrand = useState<number | null>('gimdes-active-brand', () => null)
+
+function loadCert() {
   const id = sertifikaId.value
-  const raw = id ? sessionStorage.getItem(`gimdes_cert_${id}`) : null
-  if (!raw) {
-    missing.value = true
-    return
-  }
+  let raw: string | null = null
   try {
-    cert.value = JSON.parse(raw) as Certificate
+    raw = id ? sessionStorage.getItem(`gimdes_cert_${id}`) : null
+    if (raw) {
+      cert.value = JSON.parse(raw) as Certificate
+      activeBrand.value = cert.value.SertifikaId
+    }
+    else {
+      missing.value = true
+    }
   }
   catch {
     missing.value = true
   }
-})
+}
+
+// Uygulama içi geçişte kayıt hemen okunur ki logo kartından buraya taşınabilsin.
+if (import.meta.client && !useNuxtApp().isHydrating)
+  loadCert()
+else
+  onMounted(loadCert)
 </script>
 
 <template>
-  <div class="mx-auto max-w-6xl pt-16">
-    <GimdesSiteHeader>
-      <UButton to="/arama" icon="i-lucide-search" label="Ürün ara" color="neutral" variant="outline" size="lg" />
+  <div class="mx-auto max-w-6xl pt-8">
+    <GimdesSiteHeader :color="pageColor">
+      <UButton to="/arama" icon="i-lucide-search" label="Ürün ara" color="neutral" size="lg" class="gimdes-press rounded-full px-5 font-bold" />
     </GimdesSiteHeader>
 
-    <UBreadcrumb
-      :items="[
-        { label: homeCrumbLabel, to: homeTo },
-        { label: cert?.MarkaAdi || 'Marka' },
-      ]"
-      class="mb-4"
-    />
+    <UBreadcrumb v-if="missing" :items="[{ label: homeCrumbLabel, to: homeTo }, { label: 'Marka' }]" class="mb-4 pt-8" />
 
     <UAlert
       v-if="missing"
@@ -292,36 +307,55 @@ onMounted(() => {
     </UAlert>
 
     <template v-else-if="cert">
-      <div class="animate-rise gimdes-surface mb-5 overflow-hidden lg:mb-6">
-        <div class="flex items-center gap-4 p-4 sm:gap-6 sm:p-6">
-          <GimdesBrandLogo :cert="cert" class="size-24 shrink-0 rounded-xl border border-line p-2 sm:size-32" />
-          <div class="min-w-0">
-            <h1 class="text-highlighted text-2xl leading-tight font-bold tracking-tight text-balance wrap-anywhere sm:text-3xl">
-              {{ cert.MarkaAdi }}
-            </h1>
-            <p class="text-muted mt-1 wrap-anywhere">
-              {{ cert.FirmaAdi }}
-            </p>
-            <p class="text-muted mt-1 text-sm" :title="cert.KategoriAdi">
-              {{ categoryNameTr(cert.KategoriAdi) }}
-            </p>
+      <section class="gimdes-bleed relative -mt-px mb-6 overflow-hidden text-ink-900 lg:mb-8" :style="{ backgroundColor: pageColor }">
+        <GimdesRosette
+          :seed="`${cert.SertifikaNo || ''}-${cert.SertifikaId}`"
+          :colors="rosetteColors"
+          class="gimdes-bloom absolute -right-28 -bottom-32 w-96 opacity-80 lg:top-1/2 lg:right-0 lg:bottom-auto lg:w-[36rem] lg:-translate-y-1/2"
+        />
+        <div class="relative pt-6 pb-8 lg:pt-8 lg:pb-12">
+          <UBreadcrumb
+            :items="[
+              { label: homeCrumbLabel, to: homeTo },
+              { label: cert.MarkaAdi || 'Marka' },
+            ]"
+            class="mb-5"
+            :ui="{ link: 'text-ink-900 hover:text-ink-900 font-semibold', separatorIcon: 'text-ink-900' }"
+          />
+          <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8 lg:pr-80">
+            <GimdesBrandLogo :cert="cert" class="size-32 shrink-0 rounded-[1.75rem] p-4 shadow-[0_18px_40px_-16px_rgb(6_38_26/0.45)] sm:size-48" />
+            <div class="animate-rise min-w-0">
+              <p class="font-bold" :title="cert.KategoriAdi">
+                {{ categoryNameTr(cert.KategoriAdi) }}
+              </p>
+              <h1 class="font-display mt-1 text-4xl leading-[0.95] font-extrabold tracking-[-0.03em] text-balance wrap-anywhere sm:text-5xl xl:text-6xl">
+                {{ cert.MarkaAdi }}
+              </h1>
+              <p class="mt-3 font-medium wrap-anywhere">
+                {{ cert.FirmaAdi }}
+              </p>
+            </div>
           </div>
         </div>
-        <div
-          v-if="status"
-          class="flex items-start gap-3 border-t px-4 py-3.5 sm:px-6"
-          :class="statusClass"
-          :role="alertKind ? 'alert' : 'status'"
-        >
-          <UIcon :name="status.icon" class="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-          <div class="min-w-0">
-            <p class="font-bold">
-              {{ statusTitle }}
-            </p>
-            <p v-if="statusText" class="whitespace-pre-wrap wrap-anywhere">
-              {{ statusText }}
-            </p>
-          </div>
+        <div v-if="status" class="gimdes-stamp pointer-events-none absolute top-16 right-5 w-28 rotate-[10deg] sm:top-auto sm:right-8 sm:bottom-8 sm:w-40 lg:right-[max(3rem,calc(50vw-32rem))] lg:bottom-auto lg:top-1/2 lg:w-56 lg:-translate-y-1/2">
+          <GimdesSeal :cert="cert" />
+        </div>
+      </section>
+
+      <div
+        v-if="status"
+        class="animate-rise mb-5 flex items-start gap-4 rounded-3xl px-5 py-4 [animation-delay:120ms] sm:px-6 lg:mb-6"
+        :class="statusClass"
+        :role="alertKind ? 'alert' : 'status'"
+      >
+        <UIcon :name="status.icon" class="mt-0.5 size-7 shrink-0" aria-hidden="true" />
+        <div class="min-w-0">
+          <p class="font-display text-xl font-extrabold">
+            {{ statusTitle }}
+          </p>
+          <p v-if="statusText" class="whitespace-pre-wrap wrap-anywhere">
+            {{ statusText }}
+          </p>
         </div>
       </div>
 
@@ -335,7 +369,7 @@ onMounted(() => {
             placeholder="Bu sertifikada ürün ara"
             aria-label="Kapsam ve kapsam dışı ürünlerde ara"
             class="sticky top-[calc(4.5rem+env(safe-area-inset-top))] z-10 w-full"
-            :ui="{ base: 'h-12 rounded-lg bg-white text-base', trailing: 'pe-1.5' }"
+            :ui="{ base: 'h-14 rounded-full bg-white text-lg ps-13 ring-2 ring-ink-900', leading: 'ps-5', trailing: 'pe-1.5' }"
           >
             <template v-if="scopeFilter" #trailing>
               <UButton icon="i-lucide-x" color="neutral" variant="ghost" aria-label="Ürün aramasını temizle" @click="scopeFilter = ''" />
@@ -371,7 +405,7 @@ onMounted(() => {
                 v-for="(img, idx) in certImages"
                 :key="`${img.filename}-${idx}`"
                 type="button"
-                class="gimdes-focus h-28 w-20 shrink-0 gimdes-press cursor-zoom-in overflow-hidden rounded-lg border border-line hover:-translate-y-0.5 hover:border-primary hover:shadow-lg"
+                class="gimdes-focus h-28 w-20 shrink-0 gimdes-press cursor-zoom-in overflow-hidden rounded-lg border border-line hover:-translate-y-0.5 hover:border-ink-900 hover:rotate-2 hover:shadow-lg"
                 :aria-label="`${idx + 1}. sertifika görselini büyüt`"
                 @click="openCertLightbox(idx)"
               >

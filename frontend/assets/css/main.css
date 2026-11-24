@@ -2,11 +2,17 @@
 @import '@nuxt/ui';
 
 /*
- * Tasarım yönü: sakin bir belge kaydı. Zemin ve yüzeyler nötr; yeşil, sarı ve
- * kırmızı yalnızca sertifika durumunu (ve birincil eylemi) anlatır.
+ * Tasarım yönü: giyoş (güvenlik deseni) ve pazar reyonu. Geçerli kayıt rengârenktir,
+ * geçersiz kayıt rengini kaybeder; durum her zaman yazıyla da verilir.
  */
 @theme {
   --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, sans-serif;
+
+  --font-display: 'Bricolage Grotesque', 'Hanken Grotesk', ui-sans-serif, sans-serif;
+
+  --color-brand: #1fd37e;
+  --color-cobalt: #2c4bff;
+  --color-danger: #d3122a;
 
   /* Hareket: her yerde aynı yumuşak çıkış eğrisi */
   --ease-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -20,11 +26,11 @@
     from { opacity: 0; }
   }
 
-  --color-ink-900: #0c2a1e;
+  --color-ink-900: #06261a;
   --color-ink-800: #123a2a;
   --color-ink-700: #1b4c38;
   --color-ink-100: #cfe3d7;
-  --color-paper: #f4f7f5;
+  --color-paper: #f3f8f5;
   --color-line: #dde5e0;
 }
 
@@ -33,6 +39,7 @@
   --ui-text: #2b3a33;
   --ui-text-muted: #586a61;
   --ui-text-highlighted: #10211a;
+  --ui-bg-inverted: var(--color-ink-900);
   --ui-border: var(--color-line);
 }
 
@@ -42,12 +49,12 @@ html {
 }
 
 body {
-  background: var(--color-paper);
+  background: #fff;
 }
 
 @layer components {
   .gimdes-surface {
-    @apply rounded-xl border border-line bg-white;
+    @apply rounded-3xl border border-line bg-white;
   }
 
   /* Konteynerden taşıp ekran genişliğini kaplayan bant */
@@ -71,6 +78,67 @@ body {
   }
 }
 
+.gimdes-shelf {
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: max(1rem, calc(50vw - 38rem));
+}
+
+.gimdes-shelf > * {
+  scroll-snap-align: start;
+}
+
+/* "fi" birleşik harfi Türkçede i noktasını yutuyor */
+.font-display {
+  font-variant-ligatures: none;
+}
+
+/* Başlık sözcükleri aşağıdan yerine oturur */
+.gimdes-words span {
+  display: inline-block;
+  animation: gimdes-word 0.7s var(--ease-soft) backwards;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes gimdes-word {
+  from { opacity: 0; transform: translateY(0.5em) rotate(4deg); }
+}
+
+.gimdes-bloom {
+  animation: gimdes-bloom 1.3s var(--ease-soft) backwards;
+}
+
+@keyframes gimdes-bloom {
+  from { opacity: 0; scale: 0.5; rotate: -50deg; }
+}
+
+/* Mühür kâğıda basılır */
+.gimdes-stamp {
+  animation: gimdes-stamp 0.55s cubic-bezier(0.3, 1.5, 0.5, 1) 0.45s backwards;
+}
+
+@keyframes gimdes-stamp {
+  from { opacity: 0; transform: scale(2.4) rotate(-30deg); }
+}
+
+.gimdes-seal-spin {
+  transform-origin: 100px 100px;
+  animation: gimdes-spin 24s linear infinite;
+}
+
+@keyframes gimdes-spin {
+  to { transform: rotate(360deg); }
+}
+
+.gimdes-seal-mark {
+  stroke-dasharray: 1;
+  animation: gimdes-mark 0.45s var(--ease-soft) 0.9s backwards;
+}
+
+@keyframes gimdes-mark {
+  from { stroke-dashoffset: 1; }
+}
+
 .gimdes-category-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--ui-border-accented) transparent;
@@ -90,6 +158,10 @@ input[type='search']::-webkit-search-decoration {
 ::view-transition-group(*) {
   animation-duration: 0.28s;
   animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-group(brand-logo) {
+  animation-duration: 0.5s;
 }
 
 ::view-transition-old(root) {
@@ -134,6 +206,7 @@ input[type='search']::-webkit-search-decoration {
   ::before,
   ::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
   }

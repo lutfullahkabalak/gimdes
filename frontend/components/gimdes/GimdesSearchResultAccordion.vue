@@ -27,7 +27,7 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
     :unmount-on-hide="false"
     @update:open="emit('update:open', $event)"
   >
-    <div class="relative flex flex-wrap items-center gap-3 px-3 py-3 transition-colors duration-300 hover:bg-paper sm:flex-nowrap sm:gap-4 sm:px-4">
+    <div class="relative flex flex-wrap items-center gap-3 px-3 py-4 transition-colors duration-300 hover:bg-paper sm:flex-nowrap sm:gap-4 sm:px-4">
       <button
         type="button"
         class="absolute inset-0 cursor-pointer focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
@@ -35,10 +35,10 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
         :aria-label="`${cert.MarkaAdi}: eşleşen ürünleri göster/gizle`"
         @click="emit('toggle')"
       />
-      <GimdesBrandLogo :cert="cert" class="pointer-events-none relative size-14 shrink-0 rounded-lg border border-line p-1" />
+      <GimdesBrandLogo :cert="cert" class="pointer-events-none relative size-16 shrink-0 rounded-2xl border border-line p-1.5" />
       <div class="pointer-events-none relative min-w-0 flex-1">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <span class="text-highlighted font-bold wrap-anywhere">
+          <span class="text-highlighted text-lg font-extrabold wrap-anywhere">
             <GimdesSearchHighlight :text="cert.MarkaAdi" :query="highlightQ ?? ''" />
           </span>
           <GimdesStatusPill :cert="cert" />
@@ -46,7 +46,7 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
         <p class="text-muted mt-0.5 text-sm leading-snug wrap-anywhere">
           {{ categoryNameTr(cert.KategoriAdi) }} · {{ cert.FirmaAdi }}
         </p>
-        <p v-if="matchCount" class="mt-1.5 inline-flex items-center gap-1 text-sm font-semibold" :class="outside ? 'text-red-700' : 'text-primary'">
+        <p v-if="matchCount" class="mt-1.5 inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-bold" :class="outside ? 'bg-red-100 text-red-800' : 'bg-[#c9f7df] text-ink-900'">
           <UIcon name="i-lucide-chevron-down" class="size-4 transition-transform duration-300 ease-soft" :class="{ 'rotate-180': open }" aria-hidden="true" />
           {{ outside ? `${matchCount} eşleşme, kapsam dışında` : `Kapsamda ${matchCount} eşleşme` }}
         </p>
@@ -54,10 +54,10 @@ const outside = computed(() => isOutOfScopeMatch(props.highlightQ ?? '', props.c
       <UButton
         label="Detay"
         color="neutral"
-        variant="outline"
+        variant="solid"
         size="lg"
         trailing-icon="i-lucide-chevron-right"
-        class="gimdes-press relative shrink-0 max-sm:w-full max-sm:justify-center"
+        class="gimdes-press relative shrink-0 rounded-full px-5 font-bold max-sm:w-full max-sm:justify-center max-sm:bg-paper max-sm:text-ink-900"
         @click.stop="emit('detail')"
       />
     </div>

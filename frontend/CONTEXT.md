@@ -21,10 +21,13 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 
 ## Tasarım ilkeleri (2026-11-24)
 
-- Zemin nötr; yeşil/sarı/kırmızı yalnızca sertifika durumu ve birincil eylem içindir. Kategori renkleri kaldırıldı, durum renkleriyle karışıyordu.
+- Kullanıcı canlı renkli ve şaşırtıcı bir görünüm istedi; sade sürüm `5d1e9d3` commit'indedir.
+- İmza öğesi giyoş rozeti (`GimdesRosette.vue`, canvas): deseni metinden üretir, aramada yazdıkça dönüşür; marka detayında sertifika numarasından gelir.
+- Renk kategoriyi anlatır (`utils/categoryPalette.ts`), geçersiz kayıt rengini kaybeder (gri). Durum her zaman yazıyla da verilir (`GimdesStatusPill`, `GimdesSeal`). Mühür bir durum grafiğidir, resmî GİMDES mührü taklidi değildir.
+- `font-display` birleşik harf kullanmaz; "fi" Türkçede i noktasını yutuyordu.
 - Ham upstream değeri gösterilmez: durum kodu etikete, ISO tarih GG.AA.YYYY'ye, iki dilli kategori Türkçe ada çevrilir; 0001 tarihleri "Belirtilmemiş".
 - Geçersiz sertifikanın kapsamında onay işareti yoktur. Kapsam dışı arama eşleşmesi kırmızı ve açık yazılır.
-- Renk ve yazı tipi belirteçleri `assets/css/main.css` içindedir (Hanken Grotesk, `@nuxt/fonts` derlemede indirir).
+- Renk ve yazı tipi belirteçleri `assets/css/main.css` içindedir (Bricolage Grotesque + Hanken Grotesk, `@nuxt/fonts` derlemede indirir).
 
 - Hareket: `--ease-soft`, `animate-rise`, `animate-appear`, `gimdes-stagger`, `gimdes-press` (`main.css`). Sayfalar arası View Transitions açık. Yeni içerik, eskinin çıkış animasyonunu beklemez (`mode="out-in"` gizli sekmede içeriği takılı bırakmıştı). `animation-fill-mode: backwards` kullanılır; `both` hover dönüşümünü ezebilir.
 

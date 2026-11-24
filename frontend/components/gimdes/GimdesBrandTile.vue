@@ -1,27 +1,35 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
 import { categoryNameTr } from '~/utils/certDisplay'
+import { categoryColor, NO_COLOR } from '~/utils/categoryPalette'
+import { getCertAlertKind } from '~/utils/certStatus'
 
-defineProps<{
+const props = defineProps<{
   cert: Certificate
 }>()
 
 defineEmits<{
   select: [cert: Certificate]
 }>()
+
+const invalid = computed(() => getCertAlertKind(props.cert) !== null)
+const color = computed(() => invalid.value ? NO_COLOR : categoryColor(props.cert.KategoriAdi))
 </script>
 
 <template>
   <button
     type="button"
-    class="gimdes-surface gimdes-focus group flex h-full w-full min-w-0 cursor-pointer flex-col overflow-hidden gimdes-press text-left hover:-translate-y-1 hover:border-primary/40 hover:shadow-xl hover:shadow-ink-900/8"
+    class="gimdes-focus gimdes-press group relative flex h-full w-full min-w-0 cursor-pointer flex-col rounded-[1.75rem] p-2 text-left text-ink-900 hover:-translate-y-1.5 hover:shadow-[0_22px_40px_-18px_rgb(6_38_26/0.5)]"
+    :style="{ backgroundColor: color }"
     @click="$emit('select', cert)"
   >
-    <GimdesBrandLogo :cert="cert" class="h-28 w-full shrink-0 p-4 transition-transform duration-500 ease-soft group-hover:scale-105 sm:h-32" />
-    <span class="flex w-full flex-1 flex-col gap-1 border-t border-line bg-white p-3 sm:p-4">
-      <span class="text-highlighted line-clamp-2 leading-snug font-bold wrap-anywhere transition-colors duration-300 group-hover:text-primary">{{ cert.MarkaAdi }}</span>
-      <span class="text-muted line-clamp-2 text-sm leading-snug wrap-anywhere">{{ categoryNameTr(cert.KategoriAdi) }}</span>
-      <span class="mt-auto pt-2"><GimdesStatusPill :cert="cert" /></span>
+    <span class="block overflow-hidden rounded-[1.35rem] bg-white">
+      <GimdesBrandLogo :cert="cert" class="h-32 w-full p-5 transition-transform duration-500 ease-soft group-hover:scale-105 sm:h-40" />
+    </span>
+    <span class="flex w-full flex-1 flex-col gap-0.5 px-2 pt-3 pb-2">
+      <span class="line-clamp-2 text-lg leading-tight font-extrabold wrap-anywhere">{{ cert.MarkaAdi }}</span>
+      <span class="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere text-ink-900/80">{{ categoryNameTr(cert.KategoriAdi) }}</span>
+      <span class="mt-auto pt-3"><GimdesStatusPill :cert="cert" /></span>
     </span>
   </button>
 </template>

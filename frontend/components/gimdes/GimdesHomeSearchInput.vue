@@ -16,7 +16,7 @@ defineEmits<{ submit: [] }>()
     size="xl"
     variant="outline"
     :ui="{
-      base: `${large ? 'h-14 text-lg pl-13' : 'h-11 text-base pl-11'} rounded-lg bg-white pr-11 transition-shadow duration-300 ease-soft`,
+      base: `${large ? 'h-14 text-xl pl-14 ring-0 font-medium focus-visible:ring-0' : 'h-11 text-base pl-11 ring-0'} rounded-full bg-white pr-11 transition-shadow duration-300 ease-soft`,
       leading: `pointer-events-none ${large ? 'ps-4' : 'ps-3'}`,
       trailing: 'pe-1.5',
     }"

@@ -45,13 +45,17 @@ function storageKey(id: number) {
   return `gimdes_cert_${id}`
 }
 
-function goBrand(cert: Certificate) {
+const activeBrand = useState<number | null>('gimdes-active-brand', () => null)
+
+async function goBrand(cert: Certificate) {
+  activeBrand.value = cert.SertifikaId
   saveScroll()
   try {
     sessionStorage.setItem(storageKey(cert.SertifikaId), JSON.stringify(cert))
   }
   catch { /* quota exceeded */ }
   const q = searchQ.value.trim()
+  await nextTick()
   router.push({
     path: `/marka/${cert.SertifikaId}`,
     query: {
@@ -184,7 +188,7 @@ const showHint = computed(() =>
 </script>
 
 <template>
-  <div class="mx-auto max-w-4xl pt-16">
+  <div class="mx-auto max-w-4xl pt-8">
     <GimdesSiteHeader>
       <div class="min-w-0 flex-1" role="search">
         <GimdesHomeSearchInput
@@ -197,18 +201,25 @@ const showHint = computed(() =>
       </div>
     </GimdesSiteHeader>
 
-    <div class="animate-rise mb-5">
+    <div class="gimdes-bleed relative -mt-px mb-6 overflow-hidden bg-brand text-ink-900">
+      <GimdesRosette
+        :seed="searchQ.trim()"
+        :colors="['#ffffff', '#ffe14d', '#ff5c8a', '#2c4bff']"
+        class="gimdes-bloom absolute top-1/2 -right-32 w-80 -translate-y-1/2 sm:right-0 sm:w-[26rem]"
+      />
+      <div class="animate-rise relative py-7 pr-36 sm:py-10 sm:pr-80">
       <UBreadcrumb
         :items="[
           { label: 'Ana sayfa', to: '/' },
           { label: 'Arama' },
         ]"
-        class="mb-3"
+        class="mb-4"
+        :ui="{ link: 'text-ink-900 hover:text-ink-900 font-semibold', separatorIcon: 'text-ink-900' }"
       />
-      <h1 class="text-highlighted text-2xl font-bold tracking-tight text-balance wrap-anywhere">
-        {{ lastExecutedQuery ? `“${lastExecutedQuery}” için sonuçlar` : 'Helal sertifika araması' }}
+      <h1 class="font-display text-4xl leading-none font-extrabold tracking-[-0.03em] text-balance wrap-anywhere sm:text-6xl">
+        {{ lastExecutedQuery ? lastExecutedQuery : 'Helal sertifika araması' }}
       </h1>
-      <p class="text-muted mt-1" aria-live="polite">
+      <p class="mt-3 text-lg font-medium" aria-live="polite">
         <template v-if="searchLoading">
           Aranıyor…
         </template>
@@ -222,6 +233,7 @@ const showHint = computed(() =>
           Marka, firma veya ürün adını yazın; sonuçlar kendiliğinden listelenir.
         </template>
       </p>
+    </div>
     </div>
 
     <UAlert
