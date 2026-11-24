@@ -46,3 +46,13 @@ curl --fail https://gimdes.abapnews.tr/v1/categories
 Ana sayfada kategori seçimi ve arama aynı domain üzerinden çalışmalıdır.
 Eski API hostname'i başka istemcilerce kullanılıyorsa kaldırılmadan önce
 bu istemciler ayrıca güncellenmelidir.
+
+## SSH ile güncelleme (2026-11-24'te doğrulandı)
+
+Üretim, `monster` sunucusunda Portainer'ın `gimdesapi` stack'idir (compose
+dosyası `portainer_data` volume'ünde `/data/compose/14/`). GitHub Actions
+bittikten sonra sunucuda, Portainer'ın kendi dosyasıyla:
+
+```sh
+docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v portainer_data:/data:ro -v $HOME/.docker:/root/.docker:ro -w /data/compose/14 docker:cli compose -p gimdesapi -f /data/compose/14/docker-compose.yml up -d
+```
