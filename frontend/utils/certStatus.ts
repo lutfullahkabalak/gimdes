@@ -37,6 +37,16 @@ export function expiryStrategyForCategory(cert: Certificate): ExpiryStrategy {
   return 'hybrid'
 }
 
+/**
+ * Upstream `Durum` kodları (gimdes.com): 0 geçerli, -1 iptal, -2 süresi geçmiş,
+ * -3 yenilenmeyecek, -4 askıda, -5 yenileme sürecinde. Kod, geçmiş askı
+ * notundan önceliklidir; `IptalAciklamasi` ise koddan bağımsız iptal sayılır. Bilinmeyen kod/metin: null.
+ */
+function durumCode(cert: Certificate): string | null {
+  const raw = (cert.Durum ?? '').trim()
+  return /^(0|-[1-5])$/.test(raw) ? raw : null
+}
+
 /** Upstream Durum metni süresi dolmuş / geçmiş ima ediyor mu. */
 export function durumSuggestsExpired(cert: Certificate): boolean {
   const d = (cert.Durum ?? '').toLocaleLowerCase('tr-TR').trim()
@@ -72,6 +82,8 @@ export function durumSuggestsSuspended(cert: Certificate): boolean {
 }
 
 export function isCertCancelled(cert: Certificate): boolean {
+  if (durumCode(cert) === '-1')
+    return true
   const ex = cert.IptalAciklamasi
   if (typeof ex === 'string' && ex.trim().length > 0)
     return true
@@ -97,12 +109,15 @@ function textImpliesSuspendedCategoryOrPhrase(raw: string | null | undefined): b
 /**
  * Askıya alınmış (iptal değil).
  * - Birincil kaynak: upstream `Durum` kodu (`-4` = askıda).
- * - `Durum: "0"` (aktif) ise `AskiyaAlmaAciklama` geçmiş not olabilir; askı sayılmaz.
+ * - Bilinen bir `Durum` kodu (ör. `"0"` aktif) varsa `AskiyaAlmaAciklama` geçmiş not olabilir; askı sayılmaz.
  * - Diğer durumlarda `AskiyaAlmaAciklama` veya `KategoriAdi` metin heuristikleri.
  */
 export function isCertSuspended(cert: Certificate): boolean {
   if (isCertCancelled(cert))
     return false
+  const code = durumCode(cert)
+  if (code)
+    return code === '-4' || textImpliesSuspendedCategoryOrPhrase(cert.KategoriAdi)
   if (durumSuggestsSuspended(cert))
     return true
   if (durumSuggestsActive(cert))
@@ -153,6 +168,13 @@ function isExpiredByEndDate(cert: Certificate): boolean {
 
 export function isCertExpired(cert: Certificate): boolean {
   if (isCertCancelled(cert))
+    return false
+  const code = durumCode(cert)
+  if (code === '-2' || code === '-3')
+    return true
+  if (code === '-5')
+    return isExpiredByEndDate(cert)
+  if (code)
     return false
 
   const strategy = expiryStrategyForCategory(cert)

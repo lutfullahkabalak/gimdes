@@ -123,3 +123,25 @@ describe('hasHistoricalSuspensionNote', () => {
     expect(hasHistoricalSuspensionNote(suspended)).toBe(false)
   })
 })
+
+describe('upstream Durum codes', () => {
+  it.each([
+    ['0', null],
+    ['-1', 'cancelled'],
+    ['-2', 'expired'],
+    ['-3', 'expired'],
+    ['-4', 'suspended'],
+  ])('maps %s to %s, also for tea and coffee', (Durum, kind) => {
+    expect(getCertAlertKind(cert({ Durum }))).toBe(kind)
+    expect(getCertAlertKind(cert({ Durum, KategoriAdi: 'Siyah Çay, Kahve vb./ Tea and Coffee' }))).toBe(kind)
+  })
+
+  it('uses the end date while renewal is in progress', () => {
+    expect(getCertAlertKind(cert({ Durum: '-5', SertifikaBitisTarihi: '2020-01-01' }))).toBe('expired')
+    expect(getCertAlertKind(cert({ Durum: '-5', SertifikaBitisTarihi: '2999-01-01' }))).toBe(null)
+  })
+
+  it('keeps a cancellation note above the code', () => {
+    expect(getCertAlertKind(cert({ Durum: '0', IptalAciklamasi: 'iptal' }))).toBe('cancelled')
+  })
+})
