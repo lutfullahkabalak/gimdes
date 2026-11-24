@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Certificate } from '~/types/gimdes'
-import { SHOW_ROSETTE } from '~/utils/features'
+import { SHOW_DETAIL_ROSETTE, SHOW_DETAIL_SEAL } from '~/utils/features'
 import { categoryNameTr, certStatusDisplay, formatCertDate, websiteHref } from '~/utils/certDisplay'
 import { getCertAlertKind, hasHistoricalSuspensionNote } from '~/utils/certStatus'
 import { categoryColor, NO_COLOR } from '~/utils/categoryPalette'
@@ -310,10 +310,10 @@ else
     <template v-else-if="cert">
       <section class="gimdes-bleed relative -mt-px mb-6 overflow-hidden text-ink-900 lg:mb-8" :style="{ backgroundColor: pageColor }">
         <GimdesRosette
-          v-if="SHOW_ROSETTE"
+          v-if="SHOW_DETAIL_ROSETTE"
           :seed="`${cert.SertifikaNo || ''}-${cert.SertifikaId}`"
           :colors="rosetteColors"
-          class="gimdes-bloom absolute -right-28 -bottom-32 w-96 opacity-80 lg:top-1/2 lg:right-0 lg:bottom-auto lg:w-[36rem] lg:-translate-y-1/2"
+          class="gimdes-bloom absolute -top-6 -right-20 w-64 opacity-80 sm:top-1/2 sm:-right-40 sm:w-96 sm:-translate-y-1/2 lg:right-0 lg:w-[36rem]"
         />
         <div class="relative pt-6 pb-8 lg:pt-8 lg:pb-12">
           <UBreadcrumb
@@ -339,7 +339,7 @@ else
             </div>
           </div>
         </div>
-        <div v-if="status" class="gimdes-stamp pointer-events-none absolute top-16 right-5 w-28 rotate-[10deg] sm:top-auto sm:right-8 sm:bottom-8 sm:w-40 lg:right-[max(3rem,calc(50vw-32rem))] lg:bottom-auto lg:top-1/2 lg:w-56 lg:-translate-y-1/2">
+        <div v-if="SHOW_DETAIL_SEAL && status" class="gimdes-stamp pointer-events-none absolute top-16 right-5 w-28 rotate-[10deg] sm:top-auto sm:right-8 sm:bottom-8 sm:w-40 lg:right-[max(3rem,calc(50vw-32rem))] lg:bottom-auto lg:top-1/2 lg:w-56 lg:-translate-y-1/2">
           <GimdesSeal :cert="cert" />
         </div>
       </section>
