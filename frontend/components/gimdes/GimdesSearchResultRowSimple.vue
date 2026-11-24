@@ -6,6 +6,7 @@ defineProps<{
   cert: Certificate
   /** Arama kutusu metni; marka adında eşleşenleri sarı vurgular */
   highlightQ?: string
+  hideValid?: boolean
 }>()
 
 defineEmits<{
@@ -25,7 +26,7 @@ defineEmits<{
         <span class="text-highlighted text-lg font-extrabold wrap-anywhere transition-colors duration-300 group-hover:text-primary">
           <GimdesSearchHighlight :text="cert.MarkaAdi" :query="highlightQ ?? ''" />
         </span>
-        <GimdesStatusPill :cert="cert" />
+        <GimdesStatusPill :cert="cert" :hide-valid="hideValid" />
       </span>
       <span class="text-muted mt-0.5 block text-sm leading-snug wrap-anywhere">
         {{ categoryNameTr(cert.KategoriAdi) }} · {{ cert.FirmaAdi }}

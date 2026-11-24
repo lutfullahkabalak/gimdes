@@ -324,7 +324,7 @@ else
             class="mb-5"
             :ui="{ link: 'text-ink-900 hover:text-ink-900 font-semibold', separatorIcon: 'text-ink-900' }"
           />
-          <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8 lg:pr-80">
+          <div class="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
             <GimdesBrandLogo :cert="cert" class="size-32 shrink-0 rounded-[1.75rem] p-4 shadow-[0_18px_40px_-16px_rgb(6_38_26/0.45)] sm:size-48" />
             <div class="animate-rise min-w-0">
               <p class="font-bold" :title="cert.KategoriAdi">

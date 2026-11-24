@@ -22,7 +22,7 @@ Nuxt 4 + Vue 3 + Nuxt UI ile GİMDES sertifika/marka arama ve listeleme arayüz�
 ## Tasarım ilkeleri (2026-11-24)
 
 - Kullanıcı canlı renkli ve şaşırtıcı bir görünüm istedi; sade sürüm `5d1e9d3` commit'indedir.
-- Giyoş rozeti yalnızca marka detayında görünür; ana sayfa/arama rozeti ve detay mührü gizlidir (`utils/features.ts`, kullanıcı kararı) (`GimdesRosette.vue`, canvas): deseni metinden üretir, aramada yazdıkça dönüşür; marka detayında sertifika numarasından gelir.
+- Giyoş rozeti ve detay mührü tüm sayfalarda gizlidir (`utils/features.ts`; kullanıcı denedi, yakıştırmadı). Ana sayfada "Geçerli" etiketi gösterilmez, diğer durumlar gösterilir (kullanıcı kararı) (`GimdesRosette.vue`, canvas): deseni metinden üretir, aramada yazdıkça dönüşür; marka detayında sertifika numarasından gelir.
 - Renk kategoriyi anlatır (`utils/categoryPalette.ts`), geçersiz kayıt rengini kaybeder (gri). Durum her zaman yazıyla da verilir (`GimdesStatusPill`, `GimdesSeal`). Mühür bir durum grafiğidir, resmî GİMDES mührü taklidi değildir.
 - `font-display` birleşik harf kullanmaz; "fi" Türkçede i noktasını yutuyordu.
 - Ham upstream değeri gösterilmez: durum kodu etikete, ISO tarih GG.AA.YYYY'ye, iki dilli kategori Türkçe ada çevrilir; 0001 tarihleri "Belirtilmemiş".

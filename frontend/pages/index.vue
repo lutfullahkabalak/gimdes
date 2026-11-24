@@ -333,7 +333,7 @@ onMounted(async () => {
 
       <div
         v-else-if="listCerts.length && mobileBrandView === 'grid'"
-        class="grid auto-rows-fr grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5"
+        class="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 xl:grid-cols-5"
       >
         <GimdesBrandTile
           v-for="(cert, i) in listCerts"
@@ -347,6 +347,7 @@ onMounted(async () => {
 
       <div v-else-if="listCerts.length" class="animate-rise gimdes-surface divide-y divide-line overflow-hidden">
         <GimdesSearchResultRowSimple
+          hide-valid
           v-for="(cert, i) in listCerts"
           :key="cert.SertifikaId"
           :cert="cert"

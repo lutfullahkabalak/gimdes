@@ -26,10 +26,10 @@ const color = computed(() => invalid.value ? NO_COLOR : categoryColor(props.cert
     <span class="block overflow-hidden rounded-[1.35rem] bg-white">
       <GimdesBrandLogo :cert="cert" class="h-32 w-full p-5 transition-transform duration-500 ease-soft group-hover:scale-105 sm:h-40" />
     </span>
-    <span class="flex w-full flex-1 flex-col gap-0.5 px-2 pt-3 pb-2">
+    <span class="flex w-full flex-1 flex-col gap-1 px-2 pt-3 pb-2">
       <span class="line-clamp-2 text-lg leading-tight font-extrabold wrap-anywhere">{{ cert.MarkaAdi }}</span>
       <span class="line-clamp-2 text-sm leading-snug font-medium wrap-anywhere text-ink-900/80">{{ categoryNameTr(cert.KategoriAdi) }}</span>
-      <span class="mt-auto pt-3"><GimdesStatusPill :cert="cert" /></span>
+      <GimdesStatusPill :cert="cert" hide-valid class="mt-auto" />
     </span>
   </button>
 </template>
