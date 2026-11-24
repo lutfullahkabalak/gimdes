@@ -1,5 +1,5 @@
 /** gimdes.com ile aynı kurumsal logo dosyası */
-export const gimdesBrandLogoUrl = 'https://gimdes.com/Content/images/gimdes-logo.png'
+export const gimdesBrandLogoUrl = 'https://gimdes.com/images/pwa/ikon-192.png'
 
 export function logoUrl(path: string | null | undefined): string | null {
   if (!path) return null
