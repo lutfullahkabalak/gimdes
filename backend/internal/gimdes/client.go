@@ -54,37 +54,13 @@ func (c *Client) Search(ctx context.Context, query string) ([]Certificate, error
 	return jsonGet[[]Certificate](ctx, c.httpClient(), u)
 }
 
-// CertificatesByListPath calls POST /api/catLst/{path} (e.g. Son-Guncellenenler--0).
+// CertificatesByListPath calls GET /api/catLst/{path} (e.g. Son-Guncellenenler--0).
 func (c *Client) CertificatesByListPath(ctx context.Context, path string) ([]Certificate, error) {
 	p := strings.Trim(path, "/")
 	if p == "" {
 		p = "Son-Guncellenenler--0"
 	}
-	u := c.base() + "/api/catLst/" + url.PathEscape(p)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u, strings.NewReader(""))
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("User-Agent", "gimdesapi/1.0")
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := c.httpClient().Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
-	if err != nil {
-		return nil, err
-	}
-	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
-		return nil, fmt.Errorf("upstream POST %s: %s — %s", u, resp.Status, truncate(string(body), 200))
-	}
-	var out []Certificate
-	if err := json.Unmarshal(body, &out); err != nil {
-		return nil, fmt.Errorf("decode certificates: %w", err)
-	}
-	return out, nil
+	return jsonGet[[]Certificate](ctx, c.httpClient(), c.base()+"/api/catLst/"+url.PathEscape(p))
 }
 
 func jsonGet[T any](ctx context.Context, hc *http.Client, u string) (T, error) {
@@ -101,7 +77,7 @@ func jsonGet[T any](ctx context.Context, hc *http.Client, u string) (T, error) {
 		return zero, err
 	}
 	defer resp.Body.Close()
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 8<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	if err != nil {
 		return zero, err
 	}

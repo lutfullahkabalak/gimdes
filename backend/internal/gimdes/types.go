@@ -9,7 +9,7 @@ type Category struct {
 	Icon             string `json:"Icon"`
 }
 
-// Certificate is one row from POST /api/catLst/... or embedded in category HTML.
+// Certificate is one row from GET /api/catLst/... or GET /api/s/....
 type Certificate struct {
 	KategoriAdi               string  `json:"KategoriAdi"`
 	FirmaId                   int     `json:"FirmaId"`

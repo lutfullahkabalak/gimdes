@@ -5,6 +5,7 @@ import (
 	"context"
 	"embed"
 	"encoding/json"
+	"errors"
 	"io/fs"
 	"log"
 	"net/http"
@@ -112,6 +113,10 @@ func main() {
 				listPath = "Son-Guncellenenler--0"
 			}
 			list, err = client.CertificatesByListPath(r.Context(), listPath)
+		}
+		if errors.Is(err, gimdes.ErrUnknownPagePath) {
+			jsonError(w, http.StatusBadRequest, err.Error())
+			return
 		}
 		if err != nil {
 			jsonError(w, http.StatusBadGateway, err.Error())

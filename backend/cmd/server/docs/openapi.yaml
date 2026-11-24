@@ -148,8 +148,8 @@ paths:
       summary: Sertifika listesi
       description: |
         İki kaynak birbirini dışlar:
-        - `list_path`: upstream `POST /api/catLst/{list_path}` (ör. `Son-Guncellenenler--0`).
-        - `page_path`: HTML sayfası (ör. kategori `Href` — `/KategoriListe/baharat--spices__5`); gömülü `setCert({...})` verisi ayrıştırılır.
+        - `list_path`: upstream `GET /api/catLst/{list_path}` (ör. `Son-Guncellenenler--0`).
+        - `page_path`: kategori `Href` değeri (ör. `/KategoriListe/baharat--spices__5` veya `/Kategori/AskiyaAlinanSertifikalar`); sondaki kimlik upstream `GET /api/catLst/x--{id}` isteğine çevrilir.
       operationId: listCertificates
       parameters:
         - name: list_path
@@ -165,7 +165,7 @@ paths:
           schema:
             type: string
             example: /KategoriListe/baharat--spices__5
-          description: gimdes.com üzerindeki yol; başında `/` olmalı.
+          description: "`/v1/categories` yanıtındaki `Href`."
         - name: enrich
           in: query
           required: false
@@ -182,7 +182,7 @@ paths:
                 items:
                   $ref: "#/components/schemas/Certificate"
         "400":
-          description: Hem `list_path` hem `page_path` verildi
+          description: Hem `list_path` hem `page_path` verildi veya `page_path` tanınmadı
           content:
             application/json:
               schema:
@@ -300,6 +300,7 @@ components:
           nullable: true
         Durum:
           type: string
+          description: "Upstream kodu: `0` geçerli, `-1` iptal, `-2` süresi geçmiş, `-3` yenilenmeyecek, `-4` askıda, `-5` yenileme sürecinde"
         IptalAciklamasi:
           type: string
           nullable: true
